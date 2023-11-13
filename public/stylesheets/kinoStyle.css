@@ -1,0 +1,57 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+/*Should be top right corner*/
+.back-button{
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 1vh;
+    padding: 1vh;
+    border: none;
+    background-color: transparent;
+    opacity: 0.6;
+  display: none;
+}
+
+
+#registration-form{
+  /*display: flex;*/
+  /*flex-direction: column;*/
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  /*margin-top: 10vh;*/
+}
+#registration-form  button{
+  position: absolute;
+  top: 0;
+  right: 2vw;
+  margin: 1vh;
+  padding: 1vh;
+  border: none;
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+#login-form{
+  /*display: flex;*/
+  /*flex-direction: column;*/
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  /*margin-top: 10vh;*/
+}
+#login-form  button{
+  position: absolute;
+  top: 0;
+  right: 5vw;
+  margin: 1vh;
+  padding: 1vh;
+  border: none;
+  background-color: transparent;
+  opacity: 0.6;
+}
