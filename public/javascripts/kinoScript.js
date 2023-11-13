@@ -3,6 +3,26 @@ const me = {
     id: 1,
     name: 'John Doe',
 }
+const seatsReservedByMe = [
+    {
+        seatId: 1,
+        screeningId: 1,
+    },
+    {
+        seatId: 2,
+        screeningId: 1,
+    }
+];
+const seatsBookedByMe = [
+    {
+        seatId: 3,
+        screeningId: 1,
+    },
+    {
+        seatId: 4,
+        screeningId: 1,
+    }
+];
 const dummySeatsForMovieOne = [
     {
         id: 1,
@@ -229,15 +249,37 @@ function startSeatChecking(screeningId) {
             // Update the function to mark the seat as reserved if it is already taken
             // For example:
             seats.forEach(seat => {
+                console.log(seat);
                 const seatIcon = document.createElement('i');
                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
                 seatIcon.dataset.id = seat.id;
-                seatIcon.classList.add(seat.reservierungs_stat ? 'reserved' : 'available');
-                //If it is already green, it is reserved by me
-                if(seat.reservierungs_stat) seatIcon.classList.add('selected');
-                seat.reservierungs_stat && checkSeatStatus(seat.id, seatIcon);
-                seatIcon.style.color = seat.reservierungs_stat ? 'red' : 'gray'; // Reserved seats are red, available are gray
+                //Check if it reserved by me. Do so by checking the movie the
+                //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
+                let  isReservedByMe = false;
+                //Find is the seat is reserved by me by checking if there is an object in the array with the seatId and the screeningId
+                seatsReservedByMe.forEach(seatReservedByMe => {
+                    // console.log(seat.id);
+                    // console.log(seatReservedByMe.seatId);
+                    // console.log(screeningId);
+                    // console.log(seatReservedByMe.screeningId);
+                    // console.log(seatReservedByMe.seatId == seat.id && seatReservedByMe.screeningId == screeningId);
 
+                    if(seatReservedByMe.seatId == seat.id && seatReservedByMe.screeningId == screeningId){
+                        isReservedByMe = true;
+                        console.log('reserved by me');
+                    }
+                })
+
+
+                if(isReservedByMe){
+                    seatIcon.style.color = 'green';
+                    seatIcon.classList.add('selected');
+                    console.log('reserved by me');
+                } else {
+                    seatIcon.classList.add(seat.reservierungs_stat ? 'reserved' : 'available');
+                    seat.reservierungs_stat && checkSeatStatus(seat.id, seatIcon);
+                    seatIcon.style.color = seat.reservierungs_stat ? 'red' : 'gray'; // Reserved seats are red, available are gray
+                }
                 seatIcon.style.fontSize = '24px';
                 seatIcon.style.margin = '5px';
                 seatIcon.title = `Seat ${seat.pos}`;
@@ -301,8 +343,12 @@ console.log(seatElement.classList);
 
         // If the reservation was successful, change the color of the seat
         if (reservation.success) {
-            seatElement.classList.add('selected');
+            // seatElement.classList.add('selected');
             seatElement.style.color = 'green'; // Change color to green to indicate selected seat
+            seatsReservedByMe.push({
+                seatId,
+                screeningId: 1,
+            });
         } else {
             alert('This seat cannot be reserved.');
         }
