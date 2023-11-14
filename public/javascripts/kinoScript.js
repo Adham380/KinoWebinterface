@@ -1,4 +1,190 @@
 
+function rowBuilder(seats, i){
+    const rowElement = document.createElement('div');
+    rowElement.className = 'row';
+    rowElement.dataset.id = i;
+    rowElement.style.display = "flex";
+    rowElementTextDiv = document.createElement('div');
+    rowElementTextDiv.className = 'row-text';
+    rowElementTextDiv.textContent = `Reihe ${i + 1}`;
+    rowElement.appendChild(rowElementTextDiv);
+    //Textcontent should be fixed width
+    // rowElement.style.width = '100%';
+    // rowElement.style.display = 'flex';
+    // rowElement.style.flexWrap = 'wrap';
+    // rowElement.style.maxWidth = `${seats * 50}px`;
+    // rowElement.style.justifyContent = 'center';
+    // rowElement.style.alignItems = 'center';
+    console.log(rowElement);
+    //Create the seats
+    for(let j = 0; j < seats; j++){
+        const seatElement = document.createElement('i');
+        seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
+        seatElement.dataset.id = j;
+        seatElement.style.fontSize = '24px';
+        seatElement.style.margin = '5px';
+        seatElement.title = `Seat ${j + 1}`;
+        // Determine the seat's position in the grid
+        seatElement.style.order = j + 1;
+        seatElement.classList.add('builder_seat');
+        rowElement.appendChild(seatElement);
+    }
+    let seatsArray = rowElement.querySelectorAll('.builder_seat');
+
+    //Create the buttons
+    const addSeatToRowButton = document.createElement('button');
+    addSeatToRowButton.style.order = seats + 1;
+    addSeatToRowButton.className = 'addSeatToRow-button';
+    addSeatToRowButton.dataset.id = i;
+    addSeatToRowButton.textContent = `+ 1`;
+    rowElement.appendChild(addSeatToRowButton);
+    addSeatToRowButton.addEventListener('click', function(event){
+        //Add a seat to the row
+        const rowElement = event.target.parentElement;
+        const seatElement = document.createElement('i');
+        seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
+        seatElement.dataset.id = seats + 1;
+        seatElement.style.fontSize = '24px';
+        seatElement.style.margin = '5px';
+        seatElement.title = `Seat ${seats + 1}`;
+        // Determine the seat's position in the grid
+        seatElement.style.order = seats + 1;
+        seatElement.classList.add('builder_seat');
+        rowElement.insertBefore(seatElement, rowElement.lastChild);
+        //Set the order of the buttons
+        addSeatToRowButton.style.order = rowElement.childElementCount + 1;
+        categorySelector.style.order = rowElement.childElementCount + 2;
+        seats++;
+    });
+    const removeSeatToRowButton = document.createElement('button');
+    removeSeatToRowButton.className = 'removeSeatFromRow-button';
+    removeSeatToRowButton.dataset.id = i;
+    removeSeatToRowButton.textContent = `- 1`;
+    removeSeatToRowButton.addEventListener('click', function(event){
+        //Remove a seat from the row
+        const rowElement = event.target.parentElement;
+        //If child is the button itself, do not remove it
+        if(rowElement.childElementCount == 1){
+            //This row has no seats and should thus be removed. All othe rows should have their id updated
+            // rowElement.remove();
+            return;
+        }
+        //Get all children with the class builder_seat
+        //Remove the last seat
+        // seatsArray[seatsArray.length - 1].remove();
+        //Remove seat with the highest id
+        console.log(seats)
+        rowElement.querySelector(`[title="Seat ${seats}"]`).remove();
+        //Set the order of the buttons
+        addSeatToRowButton.style.order = rowElement.childElementCount + 1;
+        categorySelector.style.order = rowElement.childElementCount + 2;
+        seats--;
+    });
+    rowElement.prepend(removeSeatToRowButton);
+    //Create the category selector
+    const categorySelector = document.createElement('select');
+    categorySelector.className = 'row-category-selector';
+    categorySelector.style.order = seats + 2;
+    categorySelector.dataset.id = seats
+    categorySelector.textContent = `Kategorie`;
+    //Create the options
+    const option1 = document.createElement('option');
+    option1.value = 'Parkett';
+    option1.textContent = 'Parkett';
+    categorySelector.appendChild(option1);
+    const option2 = document.createElement('option');
+    option2.value = 'Loge';
+    option2.textContent = 'Loge';
+    categorySelector.appendChild(option2);
+    const option3 = document.createElement('option');
+    option3.value = 'Loge mit Service';
+    option3.textContent = 'Loge mit Service';
+    categorySelector.appendChild(option3);
+    rowElement.appendChild(categorySelector);
+    // Get the Kinosaal-Builder element
+    const kinosaalBuilder = document.getElementById('Kinosaal-Builder');
+    const addRowButton = kinosaalBuilder.querySelector('.add-row-button');
+
+    // Insert the new row before the addRowButton
+    if (addRowButton) {
+        kinosaalBuilder.insertBefore(rowElement, addRowButton);
+    } else {
+        kinosaalBuilder.appendChild(rowElement);
+    }
+}
+document.addEventListener('click', async function(event) {
+    if (event.target.matches('.Kinosaal-Builder-Button')) {
+        //Remove all innerHTML from the Kinosaal-Builder
+        document.getElementById('Kinosaal-Builder').innerHTML = '';
+        //hide the screenings and screening details
+        const screeningsElement = document.getElementById('screenings');
+        screeningsElement.style.display = 'none';
+        const screeningDetailsElement = document.getElementById('screening-details');
+        screeningDetailsElement.style.display = 'none';
+        //Hide the button
+        event.target.style.display = 'none';
+        //show the back button
+        document.querySelector('.back-button').style.display = 'block';
+        document.querySelector('.back-button').addEventListener('click', function () {
+            //Hide the Kinosaal-Builder
+            document.getElementById('Kinosaal-Builder').style.display = 'none';
+            //Show the screenings
+            screeningsElement.style.display = 'block';
+            //Hide the back button
+            this.style.display = 'none';
+            //Show the Kinosaal-Builder-Button
+            document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+        });
+        //Make visible the Kinosaal-Builder
+        document.getElementById('Kinosaal-Builder').style.display = 'block';
+        //Make a default of 10 rows and 10 seats
+        let rows = 10;
+        let seats = 10;
+        //Create the rows and besides each row is a button to add or remove seats and set the category
+        //     const seatIcon = document.createElement('i');
+        //                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
+        //                 seatIcon.dataset.id = seat.id;
+        //                 seatIcon.style.fontSize = '24px';
+        //                 seatIcon.style.margin = '5px';
+        //                 seatIcon.title = `Seat ${seat.pos}`;
+        //                 // Determine the seat's position in the grid
+        //                 seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
+        //                 seatIcon.classList.add('seat');
+        //                 seatsElement.appendChild(seatIcon);
+        //Create the rows
+        for (let i = 0; i < rows; i++) {
+            rowBuilder(seats, i);
+        }
+        //Under the last row is a button to add or remove rows
+        const addRowButton = document.createElement('button');
+        addRowButton.className = 'add-row-button';
+        // addRowButton.dataset.id = rows;
+        addRowButton.textContent = `+ 1`;
+        document.getElementById('Kinosaal-Builder').appendChild(addRowButton);
+        addRowButton.addEventListener('click', function (event) {
+            //Add a row to the Kinosaal-Builder
+            const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
+            rowBuilder(seats, rows - 1);
+        });
+        const removeRowButton = document.createElement('button');
+        removeRowButton.className = 'add-row-button';
+        // removeRowButton.dataset.id = rows;
+        removeRowButton.textContent = `- 1`;
+        removeRowButton.addEventListener('click', function (event) {
+            //Remove a row from the Kinosaal-Builder
+            const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
+            //If there is only one row, do not remove it
+            if(rows == 1){
+                return;
+            }
+            //Get all rows
+            const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
+            //Remove the last row
+            rowsElement[rowsElement.length - 1].remove();
+        });
+        document.getElementById('Kinosaal-Builder').appendChild(removeRowButton);
+    }
+});
 const me = {
     id: 1,
     name: 'John Doe',
@@ -139,6 +325,8 @@ async function fetchData() {
             //hide all other screenings
             const screeningsElement = document.getElementById('screenings');
             screeningsElement.style.display = 'none';
+            const kinosaalBuilder = document.querySelector('.Kinosaal-Builder-Button');
+            kinosaalBuilder.style.display = 'none';
             // Start checking seat availability for this screening
             startSeatChecking(id); // Start checking seat availability for this screening
             // Show the back button
@@ -150,7 +338,8 @@ async function fetchData() {
                 screeningDetailsElement.style.display = 'none';
                 screeningsElement.style.display = 'block';
                 // Reset the seats
-
+                //Stop checking seats
+                clearInterval(seatCheckInterval); // Clear the interval to stop seat checking
                 const seatsElement = document.getElementById('seats');
                 seatsElement.style.display = 'none';
                 this.style.display = 'none';
@@ -185,7 +374,6 @@ function refreshScreenings() {
 setInterval(refreshScreenings, 30000); // Refresh every 30 seconds
 
 // Function to update screenings
-// Function to update screenings
 async function updateScreenings() {
     try {
         // const response = await fetch('https://your-spring-boot-app.com/screenings');
@@ -211,7 +399,6 @@ async function updateScreenings() {
 
 
 // Function to update screening details
-// Function to update screening details
 async function updateScreeningDetails(screeningId) {
     try {
         // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
@@ -227,6 +414,7 @@ async function updateScreeningDetails(screeningId) {
     }
 }
 
+let seatCheckInterval; // Define a variable to store the interval ID
 
 // Function to start checking seat availability
 function startSeatChecking(screeningId) {
@@ -241,6 +429,7 @@ function startSeatChecking(screeningId) {
 
     async function checkSeats() {
         try {
+            console.log('checking seats');
             // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}/seats`);
             // const seats = await response.json();
             const seats = dummySeats;
@@ -249,7 +438,6 @@ function startSeatChecking(screeningId) {
             // Update the function to mark the seat as reserved if it is already taken
             // For example:
             seats.forEach(seat => {
-                console.log(seat);
                 const seatIcon = document.createElement('i');
                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
                 seatIcon.dataset.id = seat.id;
@@ -272,6 +460,7 @@ function startSeatChecking(screeningId) {
 
 
                 if(isReservedByMe){
+                    // alert('This seat is already reserved by you')
                     seatIcon.style.color = 'green';
                     seatIcon.classList.add('selected');
                     console.log('reserved by me');
@@ -294,7 +483,7 @@ function startSeatChecking(screeningId) {
     }
 
     checkSeats();
-    setInterval(checkSeats, 10000); // Check every 10 seconds
+    seatCheckInterval = setInterval(checkSeats, 10000); // Store the interval ID
 }
 
 // Function to check the current status of a seat (for example, after the reservation timer expires)
