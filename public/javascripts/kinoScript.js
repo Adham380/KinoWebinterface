@@ -230,7 +230,7 @@ const dummySeatsForMovieOne = [
 const dummySeatsForMovieTwo = [];
 dummySeatsGenerator = (movieId) => {
     let dummySeats = [];
-    for(let i = 0; i < 100; i++){
+    for(let i = 1; i < 101; i++){
         dummySeats.push({
             id: i,
             //random chance of seat being reserved
@@ -340,9 +340,13 @@ async function fetchData() {
                 // Reset the seats
                 //Stop checking seats
                 clearInterval(seatCheckInterval); // Clear the interval to stop seat checking
+                stopSeatChecking();
                 const seatsElement = document.getElementById('seats');
                 seatsElement.style.display = 'none';
                 this.style.display = 'none';
+                //show the Kinosaal-Builder-Button
+                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+
             });
         }
     });
@@ -351,7 +355,8 @@ async function fetchData() {
     document.addEventListener('click', async function(event) {
         if (event.target.matches('.seat')) {
             const id = event.target.dataset.id;
-            await attemptSeatReservation(id, event.target);
+            const screeningId = document.querySelector('#screening-details').dataset.id;
+            await attemptSeatReservation(id, event.target, screeningId);
         }
     });
 
@@ -408,6 +413,7 @@ async function updateScreeningDetails(screeningId) {
         const screeningDetailsElement = document.getElementById('screening-details');
         screeningDetailsElement.style.display = 'block';
         screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details`;
+        screeningDetailsElement.dataset.id = screeningDetails.id;
         // Add more details as needed
     } catch (error) {
         console.error('Error fetching screening details:', error);
@@ -441,6 +447,7 @@ function startSeatChecking(screeningId) {
                 const seatIcon = document.createElement('i');
                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
                 seatIcon.dataset.id = seat.id;
+                console.log(seat.id);
                 //Check if it reserved by me. Do so by checking the movie the
                 //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
                 let  isReservedByMe = false;
@@ -465,6 +472,12 @@ function startSeatChecking(screeningId) {
                     seatIcon.classList.add('selected');
                     console.log('reserved by me');
                 } else {
+                    //For seat 1, check if it is reserved
+                    if(seat.id == 1){
+                        console.log('seat 1');
+                        console.log(seat.reservierungs_stat);
+                        console.log(seatsReservedByMe);
+                    }
                     seatIcon.classList.add(seat.reservierungs_stat ? 'reserved' : 'available');
                     seat.reservierungs_stat && checkSeatStatus(seat.id, seatIcon);
                     seatIcon.style.color = seat.reservierungs_stat ? 'red' : 'gray'; // Reserved seats are red, available are gray
@@ -482,8 +495,20 @@ function startSeatChecking(screeningId) {
         }
     }
 
-    checkSeats();
-    seatCheckInterval = setInterval(checkSeats, 10000); // Store the interval ID
+    checkSeats()
+    // Clear any existing interval before starting a new one
+    if (seatCheckInterval) {
+        clearInterval(seatCheckInterval);
+    }
+    seatCheckInterval = setInterval(checkSeats, 10000);
+}
+
+// Function to stop checking seat availability
+function stopSeatChecking() {
+    if (seatCheckInterval) {
+        clearInterval(seatCheckInterval);
+        seatCheckInterval = null; // Reset the interval variable
+    }
 }
 
 // Function to check the current status of a seat (for example, after the reservation timer expires)
@@ -499,7 +524,7 @@ async function checkSeatStatus(seatId, seatIcon) {
 }
 
 /// Function to attempt seat reservation
-async function attemptSeatReservation(seatId, seatElement) {
+async function attemptSeatReservation(seatId, seatElement, screeningId) {
     // If the seat is already selected by the current user, unreserve it
     if (seatElement.classList.contains('selected')) {
         await unreserveSeat(seatId, seatElement);
@@ -535,8 +560,8 @@ console.log(seatElement.classList);
             // seatElement.classList.add('selected');
             seatElement.style.color = 'green'; // Change color to green to indicate selected seat
             seatsReservedByMe.push({
-                seatId,
-                screeningId: 1,
+                seatId: parseInt(seatId),
+                screeningId: parseInt(screeningId)
             });
         } else {
             alert('This seat cannot be reserved.');
