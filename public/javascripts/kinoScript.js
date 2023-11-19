@@ -1,4 +1,5 @@
 let isAdmin = false;
+
 function rowBuilder(seats, i){
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
@@ -15,7 +16,6 @@ function rowBuilder(seats, i){
     // rowElement.style.maxWidth = `${seats * 50}px`;
     // rowElement.style.justifyContent = 'center';
     // rowElement.style.alignItems = 'center';
-    console.log(rowElement);
     //Create the seats
     for(let j = 0; j < seats; j++){
         const seatElement = document.createElement('i');
@@ -73,7 +73,6 @@ function rowBuilder(seats, i){
         //Remove the last seat
         // seatsArray[seatsArray.length - 1].remove();
         //Remove seat with the highest id
-        console.log(seats)
         rowElement.querySelector(`[title="Seat ${seats}"]`).remove();
         //Set the order of the buttons
         addSeatToRowButton.style.order = rowElement.childElementCount + 1;
@@ -221,7 +220,6 @@ document.addEventListener('click', async function(event) {
             Kinosaal.reihen.push(rowObject);
         });
         //Send the Kinosaal object to the server
-        console.log(Kinosaal);
         // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`, {
         //     method: 'POST',
         //     headers: {
@@ -271,73 +269,7 @@ document.addEventListener('click', async function(event) {
             document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
         });
         //Make visible the Screening-Builder
-        document.getElementById('Screening-Builder').style.display = 'block';
-        //Create the form
-        const form = document.createElement('form');
-        form.className = 'Screening-Builder-Form';
-        //Create the input fields
-        const inputFilm = document.createElement('input');
-        inputFilm.type = 'text';
-        inputFilm.name = 'film';
-        inputFilm.placeholder = 'Film';
-        form.appendChild(inputFilm);
-        const inputPlaysInKinoSaalId = document.createElement('select');
-        //Get the Kinosaale from the server. For now just use the dummyKinosaale array
-        // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`);
-        // const Kinosaale = await response.json();
-        //Dummy Kinosaale
-        Kinosaale.forEach(Kinosaal => {
-            const option = document.createElement('option');
-            option.value = Kinosaal.id;
-            option.textContent = `Kinosaal ${Kinosaal.id}`;
-            inputPlaysInKinoSaalId.appendChild(option);
-        });
-        inputPlaysInKinoSaalId.name = 'playsInKinoSaalId';
-        form.appendChild(inputPlaysInKinoSaalId);
-        // Create a select element for stattgefunden status
-        const selectStattgefundenStat = document.createElement('select');
-        selectStattgefundenStat.name = 'stattgefunden_stat';
-
-// Create stattgefunden option
-        const stattgefundenOption = document.createElement('option');
-        stattgefundenOption.value = true;
-        stattgefundenOption.textContent = 'stattgefunden';
-
-// Create nicht stattgefunden option
-        const nichtstattgefundenOption = document.createElement('option');
-        nichtstattgefundenOption.value = false;
-        nichtstattgefundenOption.textContent = 'nicht stattgefunden';
-
-// Append options to the select element
-        selectStattgefundenStat.appendChild(stattgefundenOption);
-        selectStattgefundenStat.appendChild(nichtstattgefundenOption);
-
-// Append the select element to the form
-        form.appendChild(selectStattgefundenStat);
-        //Create the submit button
-        const submitButton = document.createElement('button');
-        submitButton.type = 'submit';
-        submitButton.textContent = 'Submit';
-        form.appendChild(submitButton);
-        //Add the form to the Screening-Builder
-        document.getElementById('Screening-Builder').appendChild(form);
-        //Add the event listener to the form
-        form.addEventListener('submit', async function(event){
-            //for now just add the screening to the dummyScreenings
-            event.preventDefault();
-            //Get the values from the form
-            const film = document.getElementsByName('film')[0].value;
-            const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
-            const stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
-            //Create the screening object
-            const screening = {
-                id: dummyScreenings.length + 1,
-                film: film,
-                playsInKinoSaalId: playsInKinoSaalId,
-                stattgefunden_stat: stattgefunden_stat
-            };
-
-        })
+        createScreeningForm();
     }
 })
 const me = {
@@ -481,6 +413,17 @@ async function fetchData() {
             screeningsElement.style.display = 'none';
             const kinosaalBuilder = document.querySelector('.Kinosaal-Builder-Button');
             kinosaalBuilder.style.display = 'none';
+            //show edit button if the user is an admin
+            if(isAdmin){
+                const editButton = document.createElement('button');
+                editButton.className = 'edit-screening-button';
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', function(event){
+                    //Edit the screening
+                    editScreening(id);
+                })
+                document.getElementById('screening-details').appendChild(editButton);
+            }
             // Start checking seat availability for this screening
             startSeatChecking(id); // Start checking seat availability for this screening
             // Show the back button
@@ -521,7 +464,137 @@ async function fetchData() {
 
 // Call the async function
 fetchData();
+// Function to update an existing screening (dummy implementation)
+async function patchScreening(screeningData) {
+    // Send a PATCH or PUT request to the server
+    console.log('Updating screening:', screeningData);
+    // Update the data in the dummyScreenings array for this example
+    console.log(dummyScreenings);
+    console.log(screeningData);
+    console.log(dummyScreenings.findIndex(screening => screening.id == screeningData.id));
+    const index = dummyScreenings.findIndex(screening => screening.id == screeningData.id);
+    if (index > -1) {
+        dummyScreenings[index] = screeningData;
+    }
+    console.log(dummyScreenings);
+    // Update the screenings display
+    await updateScreenings().then(() => {
+        //Click back button
+        document.querySelector('.back-button').click();
+        //Remove the form
+        document.querySelector('.Screening-Builder-Form').remove();
+    });
+    // Hide the screening builder
 
+}
+function createScreeningForm(){
+    //Make visible the Screening-Builder
+    document.getElementById('Screening-Builder').style.display = 'block';
+    //Create the form
+    const form = document.createElement('form');
+    form.className = 'Screening-Builder-Form';
+    //Create the input fields
+    const inputFilm = document.createElement('input');
+    inputFilm.type = 'text';
+    inputFilm.name = 'film';
+    inputFilm.placeholder = 'Film';
+    form.appendChild(inputFilm);
+    const inputPlaysInKinoSaalId = document.createElement('select');
+    //Get the Kinosaale from the server. For now just use the dummyKinosaale array
+    // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`);
+    // const Kinosaale = await response.json();
+    //Dummy Kinosaale
+    Kinosaale.forEach(Kinosaal => {
+        const option = document.createElement('option');
+        option.value = Kinosaal.id;
+        option.textContent = `Kinosaal ${Kinosaal.id}`;
+        inputPlaysInKinoSaalId.appendChild(option);
+    });
+    inputPlaysInKinoSaalId.name = 'playsInKinoSaalId';
+    form.appendChild(inputPlaysInKinoSaalId);
+    // Create a select element for stattgefunden status
+    const selectStattgefundenStat = document.createElement('select');
+    selectStattgefundenStat.name = 'stattgefunden_stat';
+
+// Create stattgefunden option
+    const stattgefundenOption = document.createElement('option');
+    stattgefundenOption.value = true;
+    stattgefundenOption.textContent = 'stattgefunden';
+
+// Create nicht stattgefunden option
+    const nichtstattgefundenOption = document.createElement('option');
+    nichtstattgefundenOption.value = false;
+    nichtstattgefundenOption.textContent = 'nicht stattgefunden';
+
+// Append options to the select element
+    selectStattgefundenStat.appendChild(stattgefundenOption);
+    selectStattgefundenStat.appendChild(nichtstattgefundenOption);
+
+// Append the select element to the form
+    form.appendChild(selectStattgefundenStat);
+    //Create the submit button
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = 'Submit';
+    form.appendChild(submitButton);
+    //Add the form to the Screening-Builder
+    document.getElementById('Screening-Builder').appendChild(form);
+    //Add the event listener to the form
+    form.addEventListener('submit', async function(event){
+        //for now just add the screening to the dummyScreenings
+        event.preventDefault();
+        //Get the values from the form
+        const film = document.getElementsByName('film')[0].value;
+        const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
+        const stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
+        //Create the screening object
+        const screening = {
+            id: dummyScreenings.length + 1,
+            film: film,
+            playsInKinoSaalId: playsInKinoSaalId,
+            stattgefunden_stat: stattgefunden_stat
+        };
+
+    })
+}
+function populateScreeningForm(screeningData){
+    //if form already exists remove it
+    const form = document.querySelector('.Screening-Builder-Form');
+    if(form){
+        form.remove();
+        return;
+    }
+    createScreeningForm();
+    //<form class="Screening-Builder-Form"><input type="text" name="film" placeholder="Film"><select name="playsInKinoSaalId"><option value="1">Kinosaal 1</option><option value="2">Kinosaal 2</option></select><select name="stattgefunden_stat"><option value="true">stattgefunden</option><option value="false">nicht stattgefunden</option></select><button type="submit">Submit</button></form>
+    //Get the input fields
+    const inputFilm = document.getElementsByName('film')[0];
+    const inputPlaysInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0];
+    const inputStattgefundenStat = document.getElementsByName('stattgefunden_stat')[0];
+    //Populate the input fields
+    inputFilm.value = screeningData.film;
+    inputPlaysInKinoSaalId.value = screeningData.playsInKinoSaalId;
+    inputStattgefundenStat.value = screeningData.stattgefunden_stat;
+
+    // Update the submit event for the screening form to handle both create and update
+    document.querySelector('.Screening-Builder-Form').addEventListener('submit', async function(event){
+        event.preventDefault();
+        //Get the values from the form
+        const film = document.getElementsByName('film')[0].value;
+        const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
+        let stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
+        //Make string into boolean
+        stattgefunden_stat == 'true' ? stattgefunden_stat = true : stattgefunden_stat = false;
+        //Create the screening object
+        const screening = {
+            id: screeningData.id,
+            film: film,
+            playsInKinoSaalId: playsInKinoSaalId,
+            stattgefunden_stat: stattgefunden_stat
+        };
+        //Update the screening
+        await patchScreening(screening);
+    });
+}
 // Periodically update screenings
 function refreshScreenings() {
     fetch('https://your-spring-boot-app.com/screenings')
@@ -532,7 +605,17 @@ function refreshScreenings() {
         .catch(error => console.error('Error fetching screenings:', error));
 }
 setInterval(refreshScreenings, 30000); // Refresh every 30 seconds
+async function editScreening(screeningId){
+    //Fetch the screening
+    // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
+    // const screening = await response.json();
+    //Find the screening with the id
+    const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
 
+    //Populate the form
+    populateScreeningForm(screeningData);
+
+}
 // Function to update screenings
 async function updateScreenings() {
     try {
@@ -567,8 +650,9 @@ async function updateScreeningDetails(screeningId) {
         const screeningDetails = dummyScreenings.find(screening => screening.id == screeningId);
         const screeningDetailsElement = document.getElementById('screening-details');
         screeningDetailsElement.style.display = 'block';
-        screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details`;
+        screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details `;
         screeningDetailsElement.dataset.id = screeningDetails.id;
+
         // Add more details as needed
     } catch (error) {
         console.error('Error fetching screening details:', error);
@@ -602,7 +686,6 @@ function startSeatChecking(screeningId) {
                 const seatIcon = document.createElement('i');
                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
                 seatIcon.dataset.id = seat.id;
-                console.log(seat.id);
                 //Check if it reserved by me. Do so by checking the movie the
                 //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
                 let  isReservedByMe = false;
@@ -687,12 +770,10 @@ async function attemptSeatReservation(seatId, seatElement, screeningId) {
         seatElement.style.color = 'gray'; // Change color to gray to indicate available seat
         return;
     }
-console.log(seatElement.classList);
     // If the seat is reserved by someone else, do nothing
     if (seatElement.classList.contains('reserved')) {
         return;
     }
-console.log(seatElement.classList);
     // Reserve the seat
     try {
         // const response = await fetch(`https://your-spring-boot-app.com/reservations`, {
@@ -778,7 +859,8 @@ document.querySelector('#login-form').addEventListener('submit', function(event)
         document.querySelector('#logout-button').style.display = 'block';
         //Show the screening builder button
         document.querySelector('.Screening-Builder-Button').style.display = 'block';
-
+        //Click back button
+        document.querySelector('.back-button').click();
 
     }
 
