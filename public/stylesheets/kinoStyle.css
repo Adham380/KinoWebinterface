@@ -45,7 +45,7 @@ a {
   /*justify-content: center;*/
   /*margin-top: 10vh;*/
 }
-#login-form  button{
+#login-form, #logout-button{
   position: absolute;
   top: 0;
   right: 5vw;

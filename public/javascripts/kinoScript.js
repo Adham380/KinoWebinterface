@@ -1,4 +1,4 @@
-
+let isAdmin = false;
 function rowBuilder(seats, i){
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
@@ -185,6 +185,161 @@ document.addEventListener('click', async function(event) {
         document.getElementById('Kinosaal-Builder').appendChild(removeRowButton);
     }
 });
+document.addEventListener('click', async function(event) {
+    if(event.target.matches('.finalize-kinosaal-button') && isAdmin){
+        //Get all rows
+        const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
+        //Create the Kinosaal object
+        const Kinosaal = {
+            id: 1,
+            fertig_konfiguriert: true,
+            reihen: []
+        };
+        //Iterate over the rows
+        rowsElement.forEach(row => {
+            //Create the row object
+            const rowObject = {
+                id: parseInt(row.dataset.id),
+                sitze: [],
+                Kategorie: row.querySelector('.row-category-selector').value
+            };
+            //Iterate over the seats
+            const seats = row.querySelectorAll('.builder_seat');
+            seats.forEach(seat => {
+                //Create the seat object
+                const seatObject = {
+                    id: parseInt(seat.dataset.id),
+                    reservierungs_stat: false,
+                    reihe: parseInt(row.dataset.id) + 1,
+                    pos: parseInt(seat.dataset.id) + 1,
+                    buchung_stat: false
+                };
+                //Add the seat object to the row object
+                rowObject.sitze.push(seatObject);
+            });
+            //Add the row object to the Kinosaal object
+            Kinosaal.reihen.push(rowObject);
+        });
+        //Send the Kinosaal object to the server
+        console.log(Kinosaal);
+        // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ Kinosaal }),
+        // });
+        // const Kinosaal = await response.json();
+        //Dummy Kinosaal
+        Kinosaale.push(Kinosaal);
+        //Show the screenings
+        document.getElementById('screenings').style.display = 'block';
+        //Hide the Kinosaal-Builder
+        document.getElementById('Kinosaal-Builder').style.display = 'none';
+        //Hide the finalize
+        event.target.style.display = 'none';
+        //Show the Kinosaal-Builder-Button
+        document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+
+    }
+});
+document.addEventListener('click', async function(event) {
+    if(event.target.matches('.Screening-Builder-Button') && isAdmin){
+        //Remove all innerHTML from the Screening-Builder
+        document.getElementById('Screening-Builder').innerHTML = '';
+        //hide the screenings and screening details
+        const screeningsElement = document.getElementById('screenings');
+        screeningsElement.style.display = 'none';
+        const screeningDetailsElement = document.getElementById('screening-details');
+        screeningDetailsElement.style.display = 'none';
+        //Hide kinosaal builder button
+        document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
+        //Hide the button
+        event.target.style.display = 'none';
+        //show the back button
+        document.querySelector('.back-button').style.display = 'block';
+        document.querySelector('.back-button').addEventListener('click', function () {
+            //Hide the Screening-Builder
+            document.getElementById('Screening-Builder').style.display = 'none';
+            //Show the screenings
+            screeningsElement.style.display = 'block';
+            //Hide the back button
+            this.style.display = 'none';
+            //Show the Screening-Builder-Button
+            document.querySelector('.Screening-Builder-Button').style.display = 'block';
+            //Show the Kinosaal-Builder-Button
+            document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+        });
+        //Make visible the Screening-Builder
+        document.getElementById('Screening-Builder').style.display = 'block';
+        //Create the form
+        const form = document.createElement('form');
+        form.className = 'Screening-Builder-Form';
+        //Create the input fields
+        const inputFilm = document.createElement('input');
+        inputFilm.type = 'text';
+        inputFilm.name = 'film';
+        inputFilm.placeholder = 'Film';
+        form.appendChild(inputFilm);
+        const inputPlaysInKinoSaalId = document.createElement('select');
+        //Get the Kinosaale from the server. For now just use the dummyKinosaale array
+        // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`);
+        // const Kinosaale = await response.json();
+        //Dummy Kinosaale
+        Kinosaale.forEach(Kinosaal => {
+            const option = document.createElement('option');
+            option.value = Kinosaal.id;
+            option.textContent = `Kinosaal ${Kinosaal.id}`;
+            inputPlaysInKinoSaalId.appendChild(option);
+        });
+        inputPlaysInKinoSaalId.name = 'playsInKinoSaalId';
+        form.appendChild(inputPlaysInKinoSaalId);
+        // Create a select element for stattgefunden status
+        const selectStattgefundenStat = document.createElement('select');
+        selectStattgefundenStat.name = 'stattgefunden_stat';
+
+// Create stattgefunden option
+        const stattgefundenOption = document.createElement('option');
+        stattgefundenOption.value = true;
+        stattgefundenOption.textContent = 'stattgefunden';
+
+// Create nicht stattgefunden option
+        const nichtstattgefundenOption = document.createElement('option');
+        nichtstattgefundenOption.value = false;
+        nichtstattgefundenOption.textContent = 'nicht stattgefunden';
+
+// Append options to the select element
+        selectStattgefundenStat.appendChild(stattgefundenOption);
+        selectStattgefundenStat.appendChild(nichtstattgefundenOption);
+
+// Append the select element to the form
+        form.appendChild(selectStattgefundenStat);
+        //Create the submit button
+        const submitButton = document.createElement('button');
+        submitButton.type = 'submit';
+        submitButton.textContent = 'Submit';
+        form.appendChild(submitButton);
+        //Add the form to the Screening-Builder
+        document.getElementById('Screening-Builder').appendChild(form);
+        //Add the event listener to the form
+        form.addEventListener('submit', async function(event){
+            //for now just add the screening to the dummyScreenings
+            event.preventDefault();
+            //Get the values from the form
+            const film = document.getElementsByName('film')[0].value;
+            const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
+            const stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
+            //Create the screening object
+            const screening = {
+                id: dummyScreenings.length + 1,
+                film: film,
+                playsInKinoSaalId: playsInKinoSaalId,
+                stattgefunden_stat: stattgefunden_stat
+            };
+
+        })
+    }
+})
 const me = {
     id: 1,
     name: 'John Doe',
@@ -288,7 +443,6 @@ const Kinosaale = [
 ]
 const dummySeats = dummySeatsGenerator(1);
 const dummySeats2 = dummySeatsGenerator(2);
-
 const dummyScreenings = [
     {
         id: 1,
@@ -345,8 +499,9 @@ async function fetchData() {
                 seatsElement.style.display = 'none';
                 this.style.display = 'none';
                 //show the Kinosaal-Builder-Button
-                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
-
+                if(isAdmin) {
+                    document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+                }
             });
         }
     });
@@ -607,10 +762,38 @@ document.querySelector('#registration-form').addEventListener('submit', function
 document.querySelector('#login-form').addEventListener('submit', function(event) {
     event.preventDefault();
     // Get login credentials from form
+    //dummy login for now. Get the username and password from the form. Get by name
+    const username = document.getElementsByName('username')[0].value;
+    const password = document.getElementsByName('password')[0].value;
+    if (username == 'admin' && password == 'admin') {
+        //clear values
+        document.getElementsByName('username')[0].value = '';
+        document.getElementsByName('password')[0].value = '';
+        isAdmin = true;
+        //Show the Kinosaal-Builder-Button
+        document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+        //Hide the login form
+        document.querySelector('#login-form').style.display = 'none';
+        //Show the logout button
+        document.querySelector('#logout-button').style.display = 'block';
+        //Show the screening builder button
+        document.querySelector('.Screening-Builder-Button').style.display = 'block';
+
+
+    }
+
     // Send a POST request to the server for login
 });
 
 // User logout
 document.querySelector('#logout-button').addEventListener('click', function() {
     // Send a POST request to the server for logout
+    //Show the login form
+    document.querySelector('#login-form').style.display = 'block';
+    //Hide the logout button
+    document.querySelector('#logout-button').style.display = 'none';
+    //Hide the Kinosaal-Builder-Button
+    document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
+    //refresh
+    location.reload();
 });
