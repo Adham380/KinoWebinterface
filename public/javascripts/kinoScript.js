@@ -1,3 +1,49 @@
+//-------------Fetch functions-----------------
+//Get all screenings
+async function fetchScreenings() {
+    try {
+        //get REST API from localhost:3000/screenings
+        const response = await fetch('/screening');
+        const screenings = await response.json();
+        console.log(screenings);
+        let screeningArray = [];
+        screenings.forEach(screening => {
+            // console.log(screening);
+            screeningArray.push({
+                id: screening.id,
+                film: screening.film,
+                playsInHallId: screening.playsInHallId,
+                played: screening.stattgefunden_stat,
+            })
+        })
+        return screeningArray;
+    } catch (error) {
+        console.error('Error fetching screenings:', error);
+    }
+}
+//Get hall
+async function fetchHall(hallId) {
+    try {
+        //get REST API from localhost:3000/screenings
+        const response = await fetch('/hall/' + hallId);
+        const hall = await response.json();
+        console.log(hall);
+        let hallArray = [];
+        hall.forEach(row => {
+            // console.log(screening);
+            hallArray.push({
+                id: row.id,
+                seats: row.sitze,
+                category: row.Kategorie,
+            })
+        })
+        return hallArray;
+    } catch (error) {
+        console.error('Error fetching hall:', error);
+    }
+}
+//---------------------------------------------
+
 let isAdmin = false;
 
 function rowBuilder(seats, i){
@@ -450,7 +496,7 @@ const dummyScreenings = [
     }
 ];
 
-// Define an async function to use await
+//This gets film screenings.
 async function fetchData() {
     // Fetch the list of all movie screenings when the page loads
     await updateScreenings();
@@ -693,25 +739,29 @@ async function editCinemaHall(screeningId){
     // const screening = await response.json();
     //Find the screening with the id
     //playsInKinoSaalId
-    const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
+    const screeningData = await fetchScreenings().then(screenings => {
+        return screenings.find(screening => screening.id == screeningId);
+    })
+    // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
     //Get the Kinosaal
     // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInKinoSaalId}`);
     // const Kinosaal = await response2.json();
     //Find the Kinosaal with the id
-    const Kinosaal = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInKinoSaalId);
-    console.log(Kinosaal);
+    const hall =
+    const hall = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInKinoSaalId);
+    console.log(hall);
     //Populate the Kinosaal-Builder
     //Remove all innerHTML from the Kinosaal-Builder
     document.getElementById('Kinosaal-Builder').innerHTML = '';
     //use the rowBuilder function to create the Kinosaal
     //Create the rows
-    for (let i = 0; i < Kinosaal.reihen.length; i++) {
-        rowBuilder(Kinosaal.reihen[i].sitze.length, i);
+    for (let i = 0; i < hall.reihen.length; i++) {
+        rowBuilder(hall.reihen[i].sitze.length, i);
         //Populate the seats
         const seats = document.querySelectorAll(`[data-id="${i}"] .builder_seat`);
         for(let j = 0; j < seats.length; j++){
             //Check if the seat is reserved
-            if(Kinosaal.reihen[i].sitze[j].reservierungs_stat){
+            if(hall.reihen[i].sitze[j].reservierungs_stat){
                 //Add the reserved class
                 seats[j].classList.add('reserved');
                 //Change the color to red
@@ -720,18 +770,20 @@ async function editCinemaHall(screeningId){
         }
         //Populate the category selector
         const categorySelector = document.querySelectorAll(`[data-id="${i}"] .row-category-selector`)[0];
-        categorySelector.value = Kinosaal.reihen[i].Kategorie;
+        categorySelector.value = hall.reihen[i].Kategorie;
     }
 }
+
 // Function to update screenings
 async function updateScreenings() {
     try {
-        // const response = await fetch('https://your-spring-boot-app.com/screenings');
-        // const screenings = await response.json();
-        const screenings = dummyScreenings;
+        //Get from localhost localhost:8080/screening
+        const screenings = await fetchScreenings()
+        console.log(screenings);
+        // const screenings = dummyScreenings;
         const screeningsElement = document.getElementById('screenings');
         //Filter out screenings that have already happened
-        const upcomingScreenings = screenings.filter(screening => !screening.stattgefunden_stat);
+        const upcomingScreenings = screenings.filter(screening => !screening.played);
         screeningsElement.innerHTML = ''; // Clear current listings
         // Iterate over screenings and create elements for each one
         console.log(upcomingScreenings);
