@@ -141,7 +141,16 @@ async function updateRowInHall(hallId, rowId, row) {
         console.error(`Error updating row with ID ${rowId} in hall with ID ${hallId}:`, error);
     }
 }
-
+async function getAllHalls() {
+    try {
+        const response = await fetch('/halls');
+        const halls = await response.json();
+        console.log(halls);
+        return halls;
+    } catch (error) {
+        console.error('Error fetching halls:', error);
+    }
+}
 export const hallAPIFunctions = {
     fetchHall,
     createSeatingCategory,
@@ -152,4 +161,5 @@ export const hallAPIFunctions = {
     finishHall,
     addRowsToHall,
     updateRowInHall,
+    getAllHalls
 }

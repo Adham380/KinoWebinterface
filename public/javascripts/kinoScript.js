@@ -1,5 +1,6 @@
 import { screeningAPIFunctions } from './screeningAPIFunctions.js';
-
+import { hallAPIFunctions} from "./hallAPIFunctions.js";
+import { customerAPIFunctions} from "./customerAPIFunctions.js";
 
 let isAdmin = false;
 
@@ -436,20 +437,20 @@ const dummyScreenings = [
     {
         id: 1,
         film: 'The Matrix',
-        playsInKinoSaalId: 1,
-        stattgefunden_stat: false,
+        playsInHallId: 1,
+        played: false,
     },
     {
         id: 2,
         film: 'The Matrix Reloaded',
-        playsInKinoSaalId: 2,
-        stattgefunden_stat: true,
+        playsInHallId: 2,
+        played: true,
     },
     {
         id: 3,
         film: 'The Matrix Revolutions',
-        playsInKinoSaalId: 2,
-        stattgefunden_stat: false,
+        playsInHallId: 2,
+        played: false,
     }
 ];
 
@@ -494,6 +495,7 @@ async function fetchData() {
             startSeatChecking(id); // Start checking seat availability for this screening
             // Show a booking button if the user is logged in
             if (me) {
+                //If it does not exist yet, create it
                 const finalizeButton = document.createElement('button');
                 finalizeButton.className = 'finalize-button';
                 finalizeButton.textContent = 'Finalize Reservation';
@@ -518,6 +520,19 @@ async function fetchData() {
                 //show the Kinosaal-Builder-Button
                 if(isAdmin) {
                     document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+                    //Delete all the edit buttons
+                    const editScreeningButton = document.querySelector('.edit-screening-button');
+                    if(editScreeningButton){
+                        editScreeningButton.remove();
+                    }
+                    const editCinemaHallButton = document.querySelector('.edit-cinema-hall-button');
+                    if(editCinemaHallButton){
+                        editCinemaHallButton.remove();
+                    }
+                    const finalizeButton = document.querySelector('.finalize-button');
+                    if(finalizeButton){
+                        finalizeButton.remove();
+                    }
                 }
             });
         }
@@ -541,16 +556,8 @@ fetchData();
 // Function to update an existing screening (dummy implementation)
 async function patchScreening(screeningData) {
     // Send a PATCH or PUT request to the server
-    console.log('Updating screening:', screeningData);
-    // Update the data in the dummyScreenings array for this example
-    console.log(dummyScreenings);
-    console.log(screeningData);
-    console.log(dummyScreenings.findIndex(screening => screening.id == screeningData.id));
-    const index = dummyScreenings.findIndex(screening => screening.id == screeningData.id);
-    if (index > -1) {
-        dummyScreenings[index] = screeningData;
-    }
-    console.log(dummyScreenings);
+    console.log('Updating screening:', screeningData)
+    const updatedScreening = await screeningAPIFunctions.updateScreening(screeningData);
     // Update the screenings display
     await updateScreenings().then(() => {
         //Click back button
@@ -561,7 +568,7 @@ async function patchScreening(screeningData) {
     // Hide the screening builder
 
 }
-function createScreeningForm(){
+async function createScreeningForm(screeningData) {
     //Make visible the Screening-Builder
     document.getElementById('Screening-Builder').style.display = 'block';
     //Create the form
@@ -573,22 +580,20 @@ function createScreeningForm(){
     inputFilm.name = 'film';
     inputFilm.placeholder = 'Film';
     form.appendChild(inputFilm);
-    const inputPlaysInKinoSaalId = document.createElement('select');
+    const inputplaysInHallId = document.createElement('select');
     //Get the Kinosaale from the server. For now just use the dummyKinosaale array
-    // const response = await fetch(`https://your-spring-boot-app.com/Kinosaale`);
-    // const Kinosaale = await response.json();
-    //Dummy Kinosaale
-    Kinosaale.forEach(Kinosaal => {
+    const halls = await hallAPIFunctions.getAllHalls();
+    halls.forEach(hall => {
         const option = document.createElement('option');
-        option.value = Kinosaal.id;
-        option.textContent = `Kinosaal ${Kinosaal.id}`;
-        inputPlaysInKinoSaalId.appendChild(option);
+        option.value = hall.id;
+        option.textContent = `Hall ${hall.id}`;
+        inputplaysInHallId.appendChild(option);
     });
-    inputPlaysInKinoSaalId.name = 'playsInKinoSaalId';
-    form.appendChild(inputPlaysInKinoSaalId);
+    inputplaysInHallId.name = 'playsInHallId';
+    form.appendChild(inputplaysInHallId);
     // Create a select element for stattgefunden status
     const selectStattgefundenStat = document.createElement('select');
-    selectStattgefundenStat.name = 'stattgefunden_stat';
+    selectStattgefundenStat.name = 'played';
 
 // Create stattgefunden option
     const stattgefundenOption = document.createElement('option');
@@ -614,19 +619,19 @@ function createScreeningForm(){
     //Add the form to the Screening-Builder
     document.getElementById('Screening-Builder').appendChild(form);
     //Add the event listener to the form
-    form.addEventListener('submit', async function(event){
+    form.addEventListener('submit', async function (event) {
         //for now just add the screening to the dummyScreenings
         event.preventDefault();
         //Get the values from the form
         const film = document.getElementsByName('film')[0].value;
-        const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
-        const stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
+        const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
+        const played = document.getElementsByName('played')[0].value;
         //Create the screening object
         const screening = {
             id: dummyScreenings.length + 1,
             film: film,
-            playsInKinoSaalId: playsInKinoSaalId,
-            stattgefunden_stat: stattgefunden_stat
+            playsInHallId: playsInHallId,
+            played: played
         };
 
     })
@@ -638,32 +643,33 @@ function populateScreeningForm(screeningData){
         form.remove();
         return;
     }
-    createScreeningForm();
-    //<form class="Screening-Builder-Form"><input type="text" name="film" placeholder="Film"><select name="playsInKinoSaalId"><option value="1">Kinosaal 1</option><option value="2">Kinosaal 2</option></select><select name="stattgefunden_stat"><option value="true">stattgefunden</option><option value="false">nicht stattgefunden</option></select><button type="submit">Submit</button></form>
+    createScreeningForm(screeningData);
+    //<form class="Screening-Builder-Form"><input type="text" name="film" placeholder="Film"><select name="playsInHallId"><option value="1">Kinosaal 1</option><option value="2">Kinosaal 2</option></select><select name="played"><option value="true">stattgefunden</option><option value="false">nicht stattgefunden</option></select><button type="submit">Submit</button></form>
     //Get the input fields
     const inputFilm = document.getElementsByName('film')[0];
-    const inputPlaysInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0];
-    const inputStattgefundenStat = document.getElementsByName('stattgefunden_stat')[0];
+    const inputplaysInHallId = document.getElementsByName('playsInHallId')[0];
+    const inputStattgefundenStat = document.getElementsByName('played')[0];
     //Populate the input fields
     inputFilm.value = screeningData.film;
-    inputPlaysInKinoSaalId.value = screeningData.playsInKinoSaalId;
-    inputStattgefundenStat.value = screeningData.stattgefunden_stat;
+    console.log(screeningData.playsInHallId);
+    inputplaysInHallId.value = screeningData.playsInHallId;
+    inputStattgefundenStat.value = screeningData.played;
 
     // Update the submit event for the screening form to handle both create and update
     document.querySelector('.Screening-Builder-Form').addEventListener('submit', async function(event){
         event.preventDefault();
         //Get the values from the form
         const film = document.getElementsByName('film')[0].value;
-        const playsInKinoSaalId = document.getElementsByName('playsInKinoSaalId')[0].value;
-        let stattgefunden_stat = document.getElementsByName('stattgefunden_stat')[0].value;
+        const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
+        let played = document.getElementsByName('played')[0].value;
         //Make string into boolean
-        stattgefunden_stat == 'true' ? stattgefunden_stat = true : stattgefunden_stat = false;
+        played == 'true' ? played = true : played = false;
         //Create the screening object
         const screening = {
             id: screeningData.id,
             film: film,
-            playsInKinoSaalId: playsInKinoSaalId,
-            stattgefunden_stat: stattgefunden_stat
+            playsInHallId: playsInHallId,
+            played: played
         };
         //Update the screening
         await patchScreening(screening);
@@ -684,7 +690,10 @@ async function editScreening(screeningId){
     // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
     // const screening = await response.json();
     //Find the screening with the id
-    const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
+    const screeningData = await screeningAPIFunctions.fetchAllScreenings().then(screenings => {
+        return screenings.find(screening => screening.id == screeningId);
+    })
+    // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
 
     //Populate the form
     populateScreeningForm(screeningData);
@@ -695,16 +704,16 @@ async function editCinemaHall(screeningId){
     // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
     // const screening = await response.json();
     //Find the screening with the id
-    //playsInKinoSaalId
+    //playsInHallId
     const screeningData = await screeningAPIFunctions.fetchAllScreenings().then(screenings => {
         return screenings.find(screening => screening.id == screeningId);
     })
     // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
     //Get the Kinosaal
-    // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInKinoSaalId}`);
+    // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInHallId}`);
     // const Kinosaal = await response2.json();
     //Find the Kinosaal with the id
-    const hall = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInKinoSaalId);
+    const hall = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInHallId);
     console.log(hall);
     //Populate the Kinosaal-Builder
     //Remove all innerHTML from the Kinosaal-Builder
@@ -762,7 +771,9 @@ async function updateScreeningDetails(screeningId) {
         // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
         // const screeningDetails = await response.json();
         //Find the screening with the id
-        const screeningDetails = dummyScreenings.find(screening => screening.id == screeningId);
+        const screeningDetails = await screeningAPIFunctions.fetchAllScreenings().then(screenings => {
+            return screenings.find(screening => screening.id == screeningId);
+        })
         const screeningDetailsElement = document.getElementById('screening-details');
         screeningDetailsElement.style.display = 'block';
         screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details `;

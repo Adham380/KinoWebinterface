@@ -6,7 +6,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const cors = require("cors");
-
+const screeningAPICalls = require('./apiCalls/screeningAPICalls');
 var app = express();
 app.use(cors({origin: 'http://localhost:3000'}));
 app.use((req, res, next) => {
@@ -25,12 +25,7 @@ app.use('/users', usersRouter);
 app.get('/kino', function(req, res, next) {
     res.sendFile(path.join(__dirname, 'public', 'kino.html'));
 });
-async function getScreenings(){
-    const response = await fetch('http://localhost:8080/screening');
-    const data = await response.json();
-    console.log(data);
-    return data;
-}
+
 async function getHall(hallId){
     const response = await fetch('http://localhost:8080/hall/' + hallId);
     const data = await response.json();
@@ -38,7 +33,7 @@ async function getHall(hallId){
     return data;
 }
 app.get('/screening', function(req, res, next) {
-    getScreenings().then(data => {
+    screeningAPICalls.getScreenings().then(data => {
         res.send(data);
     });
 });
