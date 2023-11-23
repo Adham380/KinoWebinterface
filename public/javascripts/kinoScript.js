@@ -1,48 +1,5 @@
-//-------------Fetch functions-----------------
-//Get all screenings
-async function fetchScreenings() {
-    try {
-        //get REST API from localhost:3000/screenings
-        const response = await fetch('/screening');
-        const screenings = await response.json();
-        console.log(screenings);
-        let screeningArray = [];
-        screenings.forEach(screening => {
-            // console.log(screening);
-            screeningArray.push({
-                id: screening.id,
-                film: screening.film,
-                playsInHallId: screening.playsInHallId,
-                played: screening.stattgefunden_stat,
-            })
-        })
-        return screeningArray;
-    } catch (error) {
-        console.error('Error fetching screenings:', error);
-    }
-}
-//Get hall
-async function fetchHall(hallId) {
-    try {
-        //get REST API from localhost:3000/screenings
-        const response = await fetch('/hall/' + hallId);
-        const hall = await response.json();
-        console.log(hall);
-        let hallArray = [];
-        hall.forEach(row => {
-            // console.log(screening);
-            hallArray.push({
-                id: row.id,
-                seats: row.sitze,
-                category: row.Kategorie,
-            })
-        })
-        return hallArray;
-    } catch (error) {
-        console.error('Error fetching hall:', error);
-    }
-}
-//---------------------------------------------
+import { screeningAPIFunctions } from './screeningAPIFunctions.js';
+
 
 let isAdmin = false;
 
@@ -51,7 +8,7 @@ function rowBuilder(seats, i){
     rowElement.className = 'row';
     rowElement.dataset.id = i;
     rowElement.style.display = "flex";
-    rowElementTextDiv = document.createElement('div');
+    let rowElementTextDiv = document.createElement('div');
     rowElementTextDiv.className = 'row-text';
     rowElementTextDiv.textContent = `Reihe ${i + 1}`;
     rowElement.appendChild(rowElementTextDiv);
@@ -361,7 +318,7 @@ const dummySeatsForMovieOne = [
 
 //Filmauffuehrungen
 const dummySeatsForMovieTwo = [];
-dummySeatsGenerator = (movieId) => {
+let dummySeatsGenerator = (movieId) => {
     let dummySeats = [];
     for(let i = 1; i < 101; i++){
         dummySeats.push({
@@ -429,7 +386,7 @@ const Kinosaale = [
 const dummySeats = dummySeatsGenerator(1);
 const dummySeats2 = dummySeatsGenerator(2);
 //Attach seats to the Kinosaele
-dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
+let dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
     let seatIdCounter = 1; // Initialize a counter for seat IDs
 
     // Determine a random number of rows between 5 and 10
@@ -739,7 +696,7 @@ async function editCinemaHall(screeningId){
     // const screening = await response.json();
     //Find the screening with the id
     //playsInKinoSaalId
-    const screeningData = await fetchScreenings().then(screenings => {
+    const screeningData = await screeningAPIFunctions.fetchAllScreenings().then(screenings => {
         return screenings.find(screening => screening.id == screeningId);
     })
     // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
@@ -747,7 +704,6 @@ async function editCinemaHall(screeningId){
     // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInKinoSaalId}`);
     // const Kinosaal = await response2.json();
     //Find the Kinosaal with the id
-    const hall =
     const hall = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInKinoSaalId);
     console.log(hall);
     //Populate the Kinosaal-Builder
@@ -778,7 +734,7 @@ async function editCinemaHall(screeningId){
 async function updateScreenings() {
     try {
         //Get from localhost localhost:8080/screening
-        const screenings = await fetchScreenings()
+        const screenings = await screeningAPIFunctions.fetchAllScreenings()
         console.log(screenings);
         // const screenings = dummyScreenings;
         const screeningsElement = document.getElementById('screenings');
@@ -996,7 +952,7 @@ async function finalizeReservation() {
     //Dummy reservations
     const reservations = seatsReservedByMe;
 
-    for(reservationsIndex in reservations){
+    for(let reservationsIndex in reservations){
         //Add to booked seats
         seatsBookedByMe.push(reservations[reservationsIndex]);
         //Remove from reserved seats
