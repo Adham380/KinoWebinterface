@@ -1,6 +1,6 @@
-import { screeningAPIFunctions } from './screeningAPIFunctions.js';
-import { hallAPIFunctions} from "./hallAPIFunctions.js";
-import { customerAPIFunctions} from "./customerAPIFunctions.js";
+import { screeningAPIFunctions } from './APIFunctions/screeningAPIFunctions.js';
+import { hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
+import { customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
 
 let isAdmin = false;
 
