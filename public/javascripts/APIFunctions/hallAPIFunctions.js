@@ -1,21 +1,12 @@
 //-----------------REST Hall functions------------------
 //Get hall
-async function getHall(hallId) {
+async function getHallById(hallId) {
     try {
         //get REST API from localhost:3000/screenings
         const response = await fetch('/hall/' + hallId);
         const hall = await response.json();
         console.log(hall);
-        let hallArray = [];
-        hall.forEach(row => {
-            // console.log(screening);
-            hallArray.push({
-                id: row.id,
-                seats: row.sitze,
-                category: row.Kategorie,
-            })
-        })
-        return hallArray;
+        return hall;
     } catch (error) {
         console.error('Error fetching hall:', error);
     }
@@ -152,7 +143,7 @@ async function getAllHalls() {
     }
 }
 export const hallAPIFunctions = {
-    fetchHall: getHall,
+    getHallById,
     createSeatingCategory,
     fetchSeatingCategories,
     createHall,

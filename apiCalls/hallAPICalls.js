@@ -13,14 +13,12 @@
 async function getAllHalls () {
     const response = await fetch('http://localhost:8080/halls');
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
 async function getHallById (hallId) {
     const response = await fetch('http://localhost:8080/hall/' + hallId);
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
@@ -33,7 +31,6 @@ async function createHall (hall) {
         body: JSON.stringify(hall),
     });
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
@@ -42,7 +39,6 @@ async function deleteHallById (hallId) {
         method: 'DELETE',
     });
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
@@ -51,7 +47,6 @@ async function finishHall (hallId) {
         method: 'POST',
     });
     const data = await response.json();
-    console.log(data);
     return data;
 }
 

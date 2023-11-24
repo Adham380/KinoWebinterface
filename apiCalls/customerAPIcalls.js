@@ -131,7 +131,7 @@
  */
 async function postCustomer(customerName) {
     try {
-        const response = await fetch('/customer', {
+        const response = await fetch('http://localhost:8080/customer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ async function postCustomer(customerName) {
 //get reservations
 async function getReservationsForCustomer(customerId) {
     try {
-        const response = await fetch(`/customer/${customerId}/reservations`);
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/reservations`);
         const reservations = await response.json();
         console.log(reservations);
         return reservations;
@@ -159,7 +159,7 @@ async function getReservationsForCustomer(customerId) {
 //get bookings
 async function getBookingsForCustomer(customerId) {
     try {
-        const response = await fetch(`/customer/${customerId}/bookings`);
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/bookings`);
         const bookings = await response.json();
         console.log(bookings);
         return bookings;
@@ -169,7 +169,7 @@ async function getBookingsForCustomer(customerId) {
 }
 async function addReservationForCustomer(customerId, filmScreeningId, seatId) {
 try {
-        const response = await fetch(`/customer/${customerId}/reservations`, {
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/reservations`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filmScreeningId, seatId }),
@@ -183,7 +183,7 @@ try {
 }
 async function addBookingForCustomer(customerId, filmScreeningId, seatId) {
     try {
-        const response = await fetch(`/customer/${customerId}/bookings`, {
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/bookings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filmScreeningId, seatId }),
@@ -197,7 +197,7 @@ async function addBookingForCustomer(customerId, filmScreeningId, seatId) {
 }
 async function deleteReservationForCustomer(customerId, reservationId) {
     try {
-        const response = await fetch(`/customer/${customerId}/reservations/${reservationId}`, {
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/reservations/${reservationId}`, {
             method: 'DELETE',
         });
         const result = await response.text();
@@ -209,7 +209,7 @@ async function deleteReservationForCustomer(customerId, reservationId) {
 }
 async function deleteBookingForCustomer(customerId, bookingId) {
     try {
-        const response = await fetch(`/customer/${customerId}/bookings/${bookingId}`, {
+        const response = await fetch(`http://localhost:8080/customer/${customerId}/bookings/${bookingId}`, {
             method: 'DELETE',
         });
         const result = await response.text();
@@ -221,7 +221,7 @@ async function deleteBookingForCustomer(customerId, bookingId) {
 }
 async function transformReservationIntoBooking(reservationId) {
     try {
-        const response = await fetch(`/customer/reservations/${reservationId}/toBuchung`, {
+        const response = await fetch(`http://localhost:8080/customer/reservations/${reservationId}/toBuchung`, {
             method: 'POST'
         });
         const booking = await response.json();

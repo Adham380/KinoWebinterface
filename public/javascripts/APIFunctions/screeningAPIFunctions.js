@@ -1,19 +1,27 @@
-// JavaScript function to fetch all screenings
+async function getScreeningById(screeningId) {
+    try {
+        const response = await fetch(`/screening/${screeningId}`);
+        const screening = await response.json();
+        return screening;
+    } catch (error) {
+        console.error(`Error fetching screening with ID ${screeningId}:`, error);
+    }
+
+}
+
 async function fetchAllScreenings() {
     try {
-        const response = await fetch('/screening');
+        const response = await fetch('/screenings');
         const screenings = await response.json();
-        console.log(screenings);
         return screenings;
     } catch (error) {
         console.error('Error fetching screenings:', error);
     }
 }
 
-// JavaScript function to add a new screening
 async function addNewScreening(playsInHallId, film, played) {
     try {
-        const response = await fetch('/screening', {
+        const response = await fetch('/screenings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -28,13 +36,8 @@ async function addNewScreening(playsInHallId, film, played) {
     }
 }
 
-// JavaScript function to update a screening
 async function updateScreening(screeningId, film, playsInHallId, played) {
     try {
-        console.log('screeningId: ', screeningId);
-        console.log('film: ', film);
-        console.log('playsInHallId: ', playsInHallId);
-        console.log('played: ', played);
         const response = await fetch(`/screening/${screeningId}`, {
             method: 'PATCH',
             headers: {
@@ -50,7 +53,6 @@ async function updateScreening(screeningId, film, playsInHallId, played) {
     }
 }
 
-// JavaScript function to calculate earnings from a screening
 async function calculateEarningsFromScreening(screeningId) {
     try {
         const response = await fetch(`/screening/${screeningId}/earnings`);
@@ -64,17 +66,20 @@ async function calculateEarningsFromScreening(screeningId) {
 async function getReservedSeats(screeningId){
     const response = await fetch('/screening/' + screeningId + '/reservedSeats');
     const data = await response.json();
-    //It's a list of seatIds that are reserved
-    const reservedSeats = [];
-    data.forEach(seat => {
-        reservedSeats.push(seat.seatId);
-    })
-    return reservedSeats;
+    return data;
+}
+async function getBookedSeats(screeningId){
+    const response = await fetch('/screening/' + screeningId + '/bookedSeats');
+    const data = await response.json();
+    return data;
 }
 
 export const screeningAPIFunctions = {
+    getScreeningById,
     fetchAllScreenings,
     addNewScreening,
     updateScreening,
     calculateEarningsFromScreening,
+    getReservedSeats,
+    getBookedSeats
 }

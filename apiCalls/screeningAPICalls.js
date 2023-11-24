@@ -1,5 +1,5 @@
 async function getScreenings(){
-    const response = await fetch('http://localhost:8080/screening');
+    const response = await fetch('http://localhost:8080/screenings');
     const data = await response.json();
     console.log(data);
     return data;

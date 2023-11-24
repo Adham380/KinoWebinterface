@@ -277,8 +277,8 @@ document.addEventListener('click', async function(event) {
     }
 })
 const me = {
-    id: 1,
-    name: 'John Doe',
+    id: 20,
+    name: 'Bobbie',
 }
 const seatsReservedByMe = [
     {
@@ -563,6 +563,8 @@ async function patchScreening(screeningData) {
         document.querySelector('.back-button').click();
         //Remove the form
         document.querySelector('.Screening-Builder-Form').remove();
+        //refresh the screenings
+        updateScreenings();
     });
     // Hide the screening builder
 
@@ -689,13 +691,8 @@ async function populateScreeningForm(screeningData) {
     });
 }
 // Periodically update screenings
-function refreshScreenings() {
-    fetch('https://your-spring-boot-app.com/screenings')
-        .then(response => response.json())
-        .then(screenings => {
-            // Update the screenings display
-        })
-        .catch(error => console.error('Error fetching screenings:', error));
+async function refreshScreenings() {
+    await updateScreenings();
 }
 setInterval(refreshScreenings, 30000); // Refresh every 30 seconds
 async function editScreening(screeningId){
@@ -801,79 +798,122 @@ async function updateScreeningDetails(screeningId) {
 let seatCheckInterval; // Define a variable to store the interval ID
 
 // Function to start checking seat availability
-function startSeatChecking(screeningId) {
+async function startSeatChecking(screeningId) {
     const seatsElement = document.getElementById('seats');
     seatsElement.style.display = 'flex';
     seatsElement.style.flexWrap = 'wrap';
-
+    const screening = await screeningAPIFunctions.getScreeningById(screeningId)
+    const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
+    const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id)
+    const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+    //screeningReservations and screeningBookings are arrays of seatIds with no keys
+    const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
+    console.log(screeningId)
+    const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId)
+    console.log("myReservations: ", myReservations)
+    console.log("myBookings: ", myBookings)
+    console.log("screeningReservations: ", screeningReservations)
+    console.log("screeningBookings: ", screeningBookings)
     // Assuming a max number of seats per row for layout purposes
-    const maxSeatsPerRow = 10;
+    //check every object in hall.seatRows and check which is the longest
+    let maxSeatsPerRow = 0;
+    hall.seatRows.forEach(row => {
+        if(row.seats.length > maxSeatsPerRow){
+            maxSeatsPerRow = row.seats.length;
+        }
+    })
+    console.log(maxSeatsPerRow);
     //This should be calculated based on the number of seats in the screening and vw
-    seatsElement.style.maxWidth = `${maxSeatsPerRow * 50}px`;
+    seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
 
     async function checkSeats() {
         try {
-            console.log('checking seats');
-            // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}/seats`);
-            // const seats = await response.json();
-            const seats = dummySeats;
             seatsElement.innerHTML = ''; // Clear current seat listings
             // Iterate over seats and create icons for each one
             // Update the function to mark the seat as reserved if it is already taken
             // For example:
-            seats.forEach(seat => {
-                const seatIcon = document.createElement('i');
-                seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
-                seatIcon.dataset.id = seat.id;
-                //Check if it reserved by me. Do so by checking the movie the
-                //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
-                let  isReservedByMe = false;
-                //Find is the seat is reserved by me by checking if there is an object in the array with the seatId and the screeningId
-                seatsReservedByMe.forEach(seatReservedByMe => {
-                    // console.log(seat.id);
-                    // console.log(seatReservedByMe.seatId);
-                    // console.log(screeningId);
-                    // console.log(seatReservedByMe.screeningId);
-                    // console.log(seatReservedByMe.seatId == seat.id && seatReservedByMe.screeningId == screeningId);
 
-                    if(seatReservedByMe.seatId == seat.id && seatReservedByMe.screeningId == screeningId){
+            let rows = hall.seatRows;
+
+            //Iterate over the rows
+            rows.forEach(row => {
+                //Create the row element
+                const rowElement = document.createElement('div');
+                rowElement.className = 'row';
+                rowElement.dataset.id = row.id;
+                // Style as row
+                rowElement.style.display = 'flex';
+                rowElement.style.flexWrap = 'no-wrap';
+                //Iterate over the seats
+                row.seats.forEach(seat => {
+
+                    const seatIcon = document.createElement('i');
+                    seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
+                    seatIcon.dataset.id = seat.id;
+                    //Check if it reserved by me. Do so by checking the movie the
+                    //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
+                    let isReservedByMe = false;
+                    if (myReservations.find(reservation => reservation.seatId == seat.id)) {
                         isReservedByMe = true;
+                    }
+
+                    if (isReservedByMe) {
+                        // alert('This seat is already reserved by you')
+                        seatIcon.style.color = 'green';
+                        seatIcon.classList.add('selected');
                         console.log('reserved by me');
                     }
-                })
-
-
-                if(isReservedByMe){
-                    // alert('This seat is already reserved by you')
-                    seatIcon.style.color = 'green';
-                    seatIcon.classList.add('selected');
-                    console.log('reserved by me');
-                } else {
-                    //For seat 1, check if it is reserved
-                    if(seat.id == 1){
-                        console.log('seat 1');
-                        console.log(seat.reservierungs_stat);
-                        console.log(seatsReservedByMe);
+                    if (screeningBookings.find(booking => booking == seat.id)) {
+                        // alert('This seat is already booked')
+                        seatIcon.style.color = 'blue';
+                        seatIcon.classList.add('booked');
+                        console.log('booked');
                     }
-                    seatIcon.classList.add(seat.reservierungs_stat ? 'reserved' : 'available');
-                    seat.reservierungs_stat && checkSeatStatus(seat.id, seatIcon);
-                    seatIcon.style.color = seat.reservierungs_stat ? 'red' : 'gray'; // Reserved seats are red, available are gray
-                }
-                seatIcon.style.fontSize = '24px';
-                seatIcon.style.margin = '5px';
-                seatIcon.title = `Seat ${seat.pos}`;
-                // Determine the seat's position in the grid
-                // seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
-                seatIcon.style.order = seat.id
-                seatIcon.classList.add('seat');
-                seatsElement.appendChild(seatIcon);
+                    if (screeningReservations.find(reservation => reservation == seat.id)) {
+                        // alert('This seat is already booked')
+                        seatIcon.style.color = 'red';
+                        seatIcon.classList.add('reserved');
+                        console.log('reserved');
+                    }
+                    if (myBookings.find(booking => booking.seatId == seat.id)) {
+                        // alert('This seat is already booked by you')
+                        seatIcon.style.color = 'blue';
+                        seatIcon.classList.add('booked');
+                        console.log('booked');
+                    }
+                    const seatWidth = "2vw"
+                    seatIcon.style.fontSize = seatWidth;
+                    const margin = "0.2vw"
+                    seatIcon.style.margin = margin;
+                    seatIcon.title = `Seat ${seat.position}`;
+                    // Determine the seat's position in the grid
+                    // seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
+                    seatIcon.style.order = seat.position;
+                    seatIcon.classList.add('seat');
+                    rowElement.appendChild(seatIcon);
+                    //If this is the first of the row, add padding left
+                   if(seat.position == 1 && row.seats.length < maxSeatsPerRow){
+                       //If even number of seats, add padding left for number of seats in the row less than maxSeatsPerRow to the first seat
+                       const numberOfSeats = row.seats.length;
+                       const emptySpaceWidth = (maxSeatsPerRow - numberOfSeats) * parseFloat(seatWidth) + parseFloat(margin) * (maxSeatsPerRow - numberOfSeats);
+                       const marginLeft = emptySpaceWidth / 2; // Centering the seats by dividing the empty space by two.
+                       console.log(marginLeft);
+                       seatIcon.style.marginLeft = `${marginLeft + 0.4}vw`; // Apply the calculated margin to the first seat.
+                   }
+                })
+                const category = document.createElement('p');
+                category.textContent = `Category: ${row.category.name}`;
+                rowElement.appendChild(category);
+                seatsElement.appendChild(rowElement);
+
             });
+
         } catch (error) {
             console.error('Error fetching seats:', error);
         }
     }
 
-    checkSeats()
+    await checkSeats()
     // Clear any existing interval before starting a new one
     if (seatCheckInterval) {
         clearInterval(seatCheckInterval);

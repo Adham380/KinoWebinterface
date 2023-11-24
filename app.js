@@ -28,7 +28,7 @@ app.get('/kino', function(req, res, next) {
     res.sendFile(path.join(__dirname, 'public', 'kino.html'));
 });
 
-app.get('/screening', function(req, res, next) {
+app.get('/screenings', function(req, res, next) {
     screeningAPICalls.getScreenings().then(data => {
         res.send(data);
     });
