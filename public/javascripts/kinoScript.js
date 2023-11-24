@@ -273,7 +273,7 @@ document.addEventListener('click', async function(event) {
             document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
         });
         //Make visible the Screening-Builder
-        createScreeningForm();
+        await createScreeningForm();
     }
 })
 const me = {
@@ -557,9 +557,8 @@ fetchData();
 async function patchScreening(screeningData) {
     // Send a PATCH or PUT request to the server
     console.log('Updating screening:', screeningData)
-    const updatedScreening = await screeningAPIFunctions.updateScreening(screeningData);
     // Update the screenings display
-    await updateScreenings().then(() => {
+    await screeningAPIFunctions.updateScreening(screeningData.id, screeningData.film, parseInt(screeningData.playsInHallId), screeningData.played).then(() => {
         //Click back button
         document.querySelector('.back-button').click();
         //Remove the form
@@ -583,12 +582,13 @@ async function createScreeningForm(screeningData) {
     const inputplaysInHallId = document.createElement('select');
     //Get the Kinosaale from the server. For now just use the dummyKinosaale array
     const halls = await hallAPIFunctions.getAllHalls();
-    halls.forEach(hall => {
+    console.log(halls);
+    for(let i = 0; i < halls.length; i++){
         const option = document.createElement('option');
-        option.value = hall.id;
-        option.textContent = `Hall ${hall.id}`;
+        option.value = halls[i];
+        option.textContent = `Hall ${halls[i]}`;
         inputplaysInHallId.appendChild(option);
-    });
+    }
     inputplaysInHallId.name = 'playsInHallId';
     form.appendChild(inputplaysInHallId);
     // Create a select element for stattgefunden status
@@ -636,27 +636,40 @@ async function createScreeningForm(screeningData) {
 
     })
 }
-function populateScreeningForm(screeningData){
+async function populateScreeningForm(screeningData) {
     //if form already exists remove it
     const form = document.querySelector('.Screening-Builder-Form');
-    if(form){
+    if (form) {
         form.remove();
         return;
     }
-    createScreeningForm(screeningData);
+    await createScreeningForm(screeningData);
     //<form class="Screening-Builder-Form"><input type="text" name="film" placeholder="Film"><select name="playsInHallId"><option value="1">Kinosaal 1</option><option value="2">Kinosaal 2</option></select><select name="played"><option value="true">stattgefunden</option><option value="false">nicht stattgefunden</option></select><button type="submit">Submit</button></form>
     //Get the input fields
     const inputFilm = document.getElementsByName('film')[0];
     const inputplaysInHallId = document.getElementsByName('playsInHallId')[0];
     const inputStattgefundenStat = document.getElementsByName('played')[0];
+    console.log(inputStattgefundenStat);
+    console.log(screeningData.played);
+    console.log(inputplaysInHallId)
     //Populate the input fields
     inputFilm.value = screeningData.film;
     console.log(screeningData.playsInHallId);
     inputplaysInHallId.value = screeningData.playsInHallId;
-    inputStattgefundenStat.value = screeningData.played;
+    //Set selected to the one that contains the screeningData.playsInHallId
+    //The string of the options will be Hall + id
+    inputplaysInHallId.querySelector(`[value="${screeningData.playsInHallId}"]`).selected = true;
+    console.log(inputplaysInHallId.querySelector(`[value="Hall ${screeningData.playsInHallId}"]`));
+    //If stattgefunden, select the value true
+    if(screeningData.played){
+        inputStattgefundenStat.querySelector(`[value="true"]`).selected = true;
+    }
+    else{
+        inputStattgefundenStat.querySelector(`[value="false"]`).selected = true;
+    }
 
     // Update the submit event for the screening form to handle both create and update
-    document.querySelector('.Screening-Builder-Form').addEventListener('submit', async function(event){
+    document.querySelector('.Screening-Builder-Form').addEventListener('submit', async function (event) {
         event.preventDefault();
         //Get the values from the form
         const film = document.getElementsByName('film')[0].value;

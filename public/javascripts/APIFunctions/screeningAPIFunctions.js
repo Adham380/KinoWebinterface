@@ -31,6 +31,10 @@ async function addNewScreening(playsInHallId, film, played) {
 // JavaScript function to update a screening
 async function updateScreening(screeningId, film, playsInHallId, played) {
     try {
+        console.log('screeningId: ', screeningId);
+        console.log('film: ', film);
+        console.log('playsInHallId: ', playsInHallId);
+        console.log('played: ', played);
         const response = await fetch(`/screening/${screeningId}`, {
             method: 'PATCH',
             headers: {
@@ -56,6 +60,16 @@ async function calculateEarningsFromScreening(screeningId) {
     } catch (error) {
         console.error(`Error calculating earnings for screening with ID ${screeningId}:`, error);
     }
+}
+async function getReservedSeats(screeningId){
+    const response = await fetch('/screening/' + screeningId + '/reservedSeats');
+    const data = await response.json();
+    //It's a list of seatIds that are reserved
+    const reservedSeats = [];
+    data.forEach(seat => {
+        reservedSeats.push(seat.seatId);
+    })
+    return reservedSeats;
 }
 
 export const screeningAPIFunctions = {

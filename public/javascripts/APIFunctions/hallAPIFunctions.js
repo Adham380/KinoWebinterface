@@ -1,6 +1,6 @@
 //-----------------REST Hall functions------------------
 //Get hall
-async function fetchHall(hallId) {
+async function getHall(hallId) {
     try {
         //get REST API from localhost:3000/screenings
         const response = await fetch('/hall/' + hallId);
@@ -152,7 +152,7 @@ async function getAllHalls() {
     }
 }
 export const hallAPIFunctions = {
-    fetchHall,
+    fetchHall: getHall,
     createSeatingCategory,
     fetchSeatingCategories,
     createHall,
