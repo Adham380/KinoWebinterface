@@ -95,8 +95,11 @@ async function deleteHallById(hallId) {
 // JavaScript function to finish a hall
 async function finishHall(hallId) {
     try {
-        const response = await fetch(`/hall/${hallId}/finish`);
-        const result = await response.text();
+        const response = await fetch(`/hall/${hallId}/finish`, {
+            method: 'POST',
+        });
+
+        const result = await response;
         return result;
     } catch (error) {
         console.error(`Error finishing hall with ID ${hallId}:`, error);

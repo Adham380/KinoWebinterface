@@ -48,7 +48,7 @@ async function finishHall (hallId) {
     const response = await fetch('http://localhost:8080/hall/' + hallId + '/finish', {
         method: 'POST',
     });
-    const data = await response.json();
+    const data = await response.text()
     return data;
 }
 

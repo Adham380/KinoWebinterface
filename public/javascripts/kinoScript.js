@@ -623,15 +623,19 @@ async function fetchData() {
                     editScreening(id);
                 })
                 document.getElementById('screening-details').appendChild(editScreeningButton);
-                //Edit the cinema hall
-                const editCinemaHallButton = document.createElement('button');
-                editCinemaHallButton.className = 'edit-cinema-hall-button';
-                editCinemaHallButton.textContent = 'Edit cinema hall';
-                editCinemaHallButton.addEventListener('click', function(event){
+                const screening = await screeningAPIFunctions.getScreeningById(id);
+                const hall = await hallAPIFunctions.getHallById(screening.playsInHallId);
+                if(!hall.configured) {
                     //Edit the cinema hall
-                    editCinemaHall(id);
-                })
-                document.getElementById('screening-details').appendChild(editCinemaHallButton);
+                    const editCinemaHallButton = document.createElement('button');
+                    editCinemaHallButton.className = 'edit-cinema-hall-button';
+                    editCinemaHallButton.textContent = 'Edit cinema hall';
+                    editCinemaHallButton.addEventListener('click', function (event) {
+                        //Edit the cinema hall
+                        editCinemaHall(id);
+                    })
+                    document.getElementById('screening-details').appendChild(editCinemaHallButton);
+                }
             }
             // Start checking seat availability for this screening
             await startSeatChecking(id); // Start checking seat availability for this screening
@@ -850,6 +854,7 @@ async function editScreening(screeningId){
 
 }
 async function editCinemaHall(screeningId){
+
     //Hide the screening-details
     document.getElementById('screening-details').style.display = 'none';
     //Screening innerhtml should be empty
@@ -933,6 +938,26 @@ async function editCinemaHall(screeningId){
     rowControls.style.display = 'flex';
     rowControls.style.flexDirection = 'row';
     document.getElementById('Kinosaal-Builder').appendChild(rowControls);
+    //Add button to finish configuration
+    const finalizeButton = document.createElement('button');
+    finalizeButton.className = 'finalize-kinosaal-button';
+    finalizeButton.textContent = 'Finalize cinema hall';
+    finalizeButton.addEventListener('click', function(event){
+        hallAPIFunctions.finishHall(screeningData.playsInHallId).then((response) => {
+            console.log(response);
+            if(response.status == 200){
+                //Hide the Kinosaal-Builder
+                document.getElementById('Kinosaal-Builder').style.display = 'none';
+                //Show the screenings
+                document.getElementById('screenings').style.display = 'block';
+                //Hide the back button
+                document.querySelector('.back-button').style.display = 'none';
+                //Show the Kinosaal-Builder-Button
+                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+            }
+        })
+    })
+    document.getElementById('Kinosaal-Builder').appendChild(finalizeButton);
 }
 
 // Function to update screenings

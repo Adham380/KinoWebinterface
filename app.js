@@ -120,7 +120,7 @@ app.delete('/hall/:hallId', function(req, res, next) {
 });
 
 // Add endpoint for finishing a hall
-app.get('/hall/:hallId/finish', function(req, res, next) {
+app.post('/hall/:hallId/finish', function(req, res, next) {
     hallAPICalls.finishHall(req.params.hallId).then(data => {
         res.send(data);
     });
