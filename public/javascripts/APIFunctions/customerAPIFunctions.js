@@ -70,8 +70,7 @@ export async function getAllBookingsForCustomer(customerId) {
     try {
         const response = await fetch(`/customer/${customerId}/bookings`);
         const bookings = await response.json();
-        const listOfBookingIds = bookings.map(booking => booking.id);
-        return listOfBookingIds;
+        return bookings
     } catch (error) {
         console.error('Error getting all bookings:', error);
     }

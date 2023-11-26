@@ -264,79 +264,6 @@ async function rowBuilder(seatRow, seats, i) {
     }
 }
 document.addEventListener('click', async function(event) {
-    if (event.target.matches('.Kinosaal-Builder-Button')) {
-        //Remove all innerHTML from the Kinosaal-Builder
-        document.getElementById('Kinosaal-Builder').innerHTML = '';
-        //hide the screenings and screening details
-        const screeningsElement = document.getElementById('screenings');
-        screeningsElement.style.display = 'none';
-        const screeningDetailsElement = document.getElementById('screening-details');
-        screeningDetailsElement.style.display = 'none';
-        //Hide the button
-        event.target.style.display = 'none';
-        //show the back button
-        document.querySelector('.back-button').style.display = 'block';
-        document.querySelector('.back-button').addEventListener('click', function () {
-            //Hide the Kinosaal-Builder
-            document.getElementById('Kinosaal-Builder').style.display = 'none';
-            //Show the screenings
-            screeningsElement.style.display = 'block';
-            //Hide the back button
-            this.style.display = 'none';
-            //Show the Kinosaal-Builder-Button
-            document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
-        });
-        //Make visible the Kinosaal-Builder
-        document.getElementById('Kinosaal-Builder').style.display = 'block';
-        //Make a default of 10 rows and 10 seats
-        let rows = 10;
-        let seats = 10;
-        //Create the rows and besides each row is a button to add or remove seats and set the category
-        //     const seatIcon = document.createElement('i');
-        //                 seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
-        //                 seatIcon.dataset.id = seat.id;
-        //                 seatIcon.style.fontSize = '24px';
-        //                 seatIcon.style.margin = '5px';
-        //                 seatIcon.title = `Seat ${seat.pos}`;
-        //                 // Determine the seat's position in the grid
-        //                 seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
-        //                 seatIcon.classList.add('seat');
-        //                 seatsElement.appendChild(seatIcon);
-        //Create the rows
-        for (let i = 0; i < rows; i++) {
-            await rowBuilder(seats, i);
-        }
-        //Under the last row is a button to add or remove rows
-        const addRowButton = document.createElement('button');
-        addRowButton.className = 'add-row-button';
-        // addRowButton.dataset.id = rows;
-        addRowButton.textContent = `+ 1`;
-        document.getElementById('Kinosaal-Builder').appendChild(addRowButton);
-        addRowButton.addEventListener('click', function (event) {
-            //Add a row to the Kinosaal-Builder
-            const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
-            rowBuilder(seats, rows - 1);
-        });
-        const removeRowButton = document.createElement('button');
-        removeRowButton.className = 'add-row-button';
-        // removeRowButton.dataset.id = rows;
-        removeRowButton.textContent = `- 1`;
-        removeRowButton.addEventListener('click', function (event) {
-            //Remove a row from the Kinosaal-Builder
-            const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
-            //If there is only one row, do not remove it
-            if(rows == 1){
-                return;
-            }
-            //Get all rows
-            const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
-            //Remove the last row
-            rowsElement[rowsElement.length - 1].remove();
-        });
-        document.getElementById('Kinosaal-Builder').appendChild(removeRowButton);
-    }
-});
-document.addEventListener('click', async function(event) {
     if(event.target.matches('.finalize-kinosaal-button') && isAdmin){
         //Get all rows
         const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
@@ -388,8 +315,6 @@ document.addEventListener('click', async function(event) {
         document.getElementById('Kinosaal-Builder').style.display = 'none';
         //Hide the finalize
         event.target.style.display = 'none';
-        //Show the Kinosaal-Builder-Button
-        document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
 
     }
 });
@@ -402,8 +327,6 @@ document.addEventListener('click', async function(event) {
         screeningsElement.style.display = 'none';
         const screeningDetailsElement = document.getElementById('screening-details');
         screeningDetailsElement.style.display = 'none';
-        //Hide kinosaal builder button
-        document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
         //Hide list of Halls
         document.querySelector('.halls').style.display = 'none';
         //Hide the button
@@ -419,8 +342,6 @@ document.addEventListener('click', async function(event) {
             this.style.display = 'none';
             //Show the Screening-Builder-Button
             document.querySelector('.Screening-Builder-Button').style.display = 'block';
-            //Show the Kinosaal-Builder-Button
-            document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
             //Show the list of Halls
             document.querySelector('.halls').style.display = 'block';
         });
@@ -615,8 +536,11 @@ async function fetchData() {
             //hide all other screenings
             const screeningsElement = document.getElementById('screenings');
             screeningsElement.style.display = 'none';
-            const kinosaalBuilder = document.querySelector('.Kinosaal-Builder-Button');
-            kinosaalBuilder.style.display = 'none';
+            //hide the Screening-Builder
+            document.querySelector('.Screening-Builder-Button').style.display = 'none';
+            //hide the list of Halls
+            document.querySelector('.halls').style.display = 'none';
+
             //show edit button if the user is an admin
             if(isAdmin){
                 const editScreeningButton = document.createElement('button');
@@ -648,7 +572,7 @@ async function fetchData() {
                 //If it does not exist yet, create it
                 const finalizeButton = document.createElement('button');
                 finalizeButton.className = 'finalize-button';
-                finalizeButton.textContent = 'Finalize Reservation';
+                finalizeButton.textContent = 'Book reserved seats';
                 document.getElementById('screening-details').appendChild(finalizeButton);
                 finalizeButton.addEventListener('click', finalizeReservation)
             }
@@ -667,9 +591,7 @@ async function fetchData() {
                 const seatsElement = document.getElementById('seats');
                 seatsElement.style.display = 'none';
                 this.style.display = 'none';
-                //show the Kinosaal-Builder-Button
                 if(isAdmin) {
-                    document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
                     //Delete all the edit buttons
                     const editScreeningButton = document.querySelector('.edit-screening-button');
                     if(editScreeningButton){
@@ -687,6 +609,8 @@ async function fetchData() {
                     if(KinosaalBuilder){
                         KinosaalBuilder.style.display = 'none';
                     }
+                    document.querySelector('.Screening-Builder-Button').style.display = 'block';
+                    document.querySelector('.halls').style.display = 'block';
                 }
             });
         }
@@ -738,7 +662,8 @@ async function createScreeningForm(screeningData) {
     //Get the Kinosaale from the server. For now just use the dummyKinosaale array
     const halls = await hallAPIFunctions.getAllHalls();
     for(let i = 0; i < halls.length; i++){
-        if(halls[i].configured) {
+        const hall = await hallAPIFunctions.getHallById(parseInt(halls[i]));
+        if(hall.configured) {
             const option = document.createElement('option');
             option.value = halls[i];
             option.textContent = `Hall ${halls[i]}`;
@@ -985,8 +910,6 @@ async function editCinemaHall(hallId){
                 document.getElementById('screenings').style.display = 'block';
                 //Hide the back button
                 document.querySelector('.back-button').style.display = 'none';
-                //Show the Kinosaal-Builder-Button
-                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
                 //Show the list of Halls
                 document.querySelector('.halls').style.display = 'block';
                 //Show the screenings
@@ -1064,8 +987,13 @@ async function startSeatChecking(screeningId) {
             const screening = await screeningAPIFunctions.getScreeningById(screeningId)
             const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
             const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
+            console.log(screeningReservations);
             const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
+            console.log(screeningBookings);
             const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+            console.log(myReservations);
+            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+            console.log(myBookings);
             let myReservationsForScreening = [];
             //Check if I have a reservation that has a seat equal to the one in screeningReservations
             for(let i = 0; i < screeningReservations.length; i++){
@@ -1074,13 +1002,12 @@ async function startSeatChecking(screeningId) {
                     myReservationsForScreening.push(screeningReservations[i]);
                 }
             }
-            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
             let myBookingsForScreening = [];
             //Check if I have a booking that has a seat equal to the one in screeningBookings
             for(let i = 0; i < screeningBookings.length; i++){
                 //Check if I have a booking for this seat
-                if(myBookings.find(booking => booking == screeningBookings[i].seatId)){
-                    myBookingsForScreening.push(screeningBookings[i].seatId);
+                if(myBookings.find(booking => booking.seatId == screeningBookings[i])){
+                    myBookingsForScreening.push(screeningBookings[i]);
                 }
             }
             // Assuming a max number of seats per row for layout purposes
@@ -1128,7 +1055,7 @@ async function startSeatChecking(screeningId) {
                     }
                     if (screeningBookings.find(booking => booking == seat.id)) {
                         // alert('This seat is already booked')
-                        seatIcon.style.color = 'blue';
+                        seatIcon.style.color = 'red';
                         seatIcon.classList.add('booked');
                     }
                     if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
@@ -1350,8 +1277,6 @@ async function hallListBuilder(){
                 //Edit the hall
 
                 await editCinemaHall(hall.id);
-                //Hide the Kinosaal-Builder-Button
-                document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
                 //Hide the screen-builder button
                 document.querySelector('.Screening-Builder-Button').style.display = 'none';
                 //Hide all other halls
@@ -1369,8 +1294,6 @@ async function hallListBuilder(){
                     }
                     //Hide the back button
                     backButton.style.display = 'none';
-                    //Show the Kinosaal-Builder-Button
-                    document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
                     //Show the screen-builder button
                     document.querySelector('.Screening-Builder-Button').style.display = 'block';
                     //Remove the Kinosaal-Builder
@@ -1416,8 +1339,6 @@ async function hallListBuilder(){
         editHallButton.addEventListener('click', async function (event) {
             //Edit the hall
             await editCinemaHall(newHall.id);
-            //Hide the Kinosaal-Builder-Button
-            document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
             //Hide the screen-builder button
             document.querySelector('.Screening-Builder-Button').style.display = 'none';
             //Hide all other halls
@@ -1437,8 +1358,6 @@ async function hallListBuilder(){
                 }
                 //Hide the back button
                 backButton.style.display = 'none';
-                //Show the Kinosaal-Builder-Button
-                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
                 //Show the screen-builder button
                 document.querySelector('.Screening-Builder-Button').style.display = 'block';
                 //Remove the Kinosaal-Builder
@@ -1470,8 +1389,6 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         document.getElementsByName('username')[0].value = '';
         document.getElementsByName('password')[0].value = '';
         isAdmin = true;
-        //Show the Kinosaal-Builder-Button
-        document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
         //Hide the login form
         document.querySelector('#login-form').style.display = 'none';
         //Show the logout button
@@ -1493,8 +1410,6 @@ document.querySelector('#logout-button').addEventListener('click', function() {
     document.querySelector('#login-form').style.display = 'block';
     //Hide the logout button
     document.querySelector('#logout-button').style.display = 'none';
-    //Hide the Kinosaal-Builder-Button
-    document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
     //refresh
     location.reload();
 });
