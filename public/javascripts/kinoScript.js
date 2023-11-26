@@ -404,6 +404,8 @@ document.addEventListener('click', async function(event) {
         screeningDetailsElement.style.display = 'none';
         //Hide kinosaal builder button
         document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
+        //Hide list of Halls
+        document.querySelector('.halls').style.display = 'none';
         //Hide the button
         event.target.style.display = 'none';
         //show the back button
@@ -419,6 +421,8 @@ document.addEventListener('click', async function(event) {
             document.querySelector('.Screening-Builder-Button').style.display = 'block';
             //Show the Kinosaal-Builder-Button
             document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+            //Show the list of Halls
+            document.querySelector('.halls').style.display = 'block';
         });
         //Make visible the Screening-Builder
         await createScreeningForm();
@@ -734,10 +738,12 @@ async function createScreeningForm(screeningData) {
     //Get the Kinosaale from the server. For now just use the dummyKinosaale array
     const halls = await hallAPIFunctions.getAllHalls();
     for(let i = 0; i < halls.length; i++){
-        const option = document.createElement('option');
-        option.value = halls[i];
-        option.textContent = `Hall ${halls[i]}`;
-        inputplaysInHallId.appendChild(option);
+        if(halls[i].configured) {
+            const option = document.createElement('option');
+            option.value = halls[i];
+            option.textContent = `Hall ${halls[i]}`;
+            inputplaysInHallId.appendChild(option);
+        }
     }
     inputplaysInHallId.name = 'playsInHallId';
     form.appendChild(inputplaysInHallId);
@@ -888,24 +894,48 @@ async function editCinemaHall(hallId){
     // addRowButton.dataset.id = rows;
     addRowButton.textContent = `Add row`;
     document.getElementById('Kinosaal-Builder').appendChild(addRowButton);
-    addRowButton.addEventListener('click', function (event) {
+    addRowButton.addEventListener('click', async function (event) {
         //Add a row to the Kinosaal-Builder
         const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
+        let category;
+        console.log(hall);
+        if (!hall.seatRows || hall.seatRows.length == 0) {
+            //Get available categories
+            category = await hallAPIFunctions.fetchSeatingCategories().then(categories => {
+                console.log(categories);
+                return categories[0];
+            });
+        } else {
+            category = hall.seatRows[hall.seatRows.length - 1].category;
+        }
         hallAPIFunctions.addRowsToHall(hallId,
-        [ {categoryId: hall.seatRows[hall.seatRows.length - 1].category.id,
-            numberOfSeats: 10}
+            [{
+                categoryId: category.id,
+                numberOfSeats: 10
+            }
             ]
         ).then((response) => {
             console.log(response);
-            if(response.seatRows != null && response.seatRows.length > hall.seatRows.length - 1){
+            if (response.seatRows != null && response.seatRows.length > hall.seatRows.length - 1) {
                 //Get the hall
-                hallAPIFunctions.getHallById(hallId).then(hall => {
+                hallAPIFunctions.getHallById(hallId).then(async hall => {
                     //Get the last row
                     const row = hall.seatRows[hall.seatRows.length - 1];
                     console.log(row);
                     //Create the row
                     console.log(hall.seatRows.length - 1);
-                    rowBuilder(row, row.seats.length, hall.seatRows.length - 1);
+                    await rowBuilder(row, row.seats.length, hall.seatRows.length - 1);
+                }).then(() => {
+                    //Get row category selector and change it to the category returned above
+                    const categorySelector = document.querySelectorAll('.row-category-selector');
+                    console.log(categorySelector);
+                    for (let i = 0; i < categorySelector.length; i++) {
+                        for (let j = 0; j < categorySelector[i].options.length; j++) {
+                            if (categorySelector[i].options[j].value == category.id) {
+                                categorySelector[i].options[j].selected = true;
+                            }
+                        }
+                    }
                 })
             }
         });
@@ -957,6 +987,11 @@ async function editCinemaHall(hallId){
                 document.querySelector('.back-button').style.display = 'none';
                 //Show the Kinosaal-Builder-Button
                 document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+                //Show the list of Halls
+                document.querySelector('.halls').style.display = 'block';
+                //Show the screenings
+                document.getElementById('screenings').style.display = 'block';
+                document.querySelector('.Screening-Builder-Button').style.display = 'block';
             }
         })
     })
@@ -1320,10 +1355,8 @@ async function hallListBuilder(){
                 //Hide the screen-builder button
                 document.querySelector('.Screening-Builder-Button').style.display = 'none';
                 //Hide all other halls
-                const halls = document.querySelectorAll('.hall');
-                for (let i = 0; i < halls.length; i++) {
-                    halls[i].style.display = 'none';
-                }
+                const halls = document.querySelector('.halls');
+                halls.style.display = 'none';
                 //Show the back button
                 const backButton = document.querySelector('.back-button');
                 backButton.style.display = 'block';

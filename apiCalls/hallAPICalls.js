@@ -76,6 +76,7 @@ async function deleteSeatingCategory (seatingCategoryId) {
 async function fetchSeatingCategories (hallId) {
     const response = await fetch('http://localhost:8080/seatingCategories');
     const data = await response.json();
+    console.log(data);
     return data;
 }
 
