@@ -36,10 +36,23 @@ async function getEarnings(screeningId) {
     return data;
 
 }
-async function postScreening(screening, screeningId) {
+async function patchScreening(screening, screeningId) {
     console.log(JSON.stringify(screening));
     const response = await fetch(`http://localhost:8080/screening/${screeningId}`, {
         method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({film: screening.film, playsInHallId: screening.playsInHallId, played: screening.played}),
+    });
+    const data = await response.json();
+    console.log(data);
+    return data;
+}
+async function postScreening(screening) {
+    console.log(JSON.stringify(screening));
+    const response = await fetch('http://localhost:8080/screening', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
@@ -57,5 +70,6 @@ module.exports = {
     getBookedSeats,
     getScreeningById,
     getEarnings,
+    patchScreening,
     postScreening
 }

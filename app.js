@@ -63,7 +63,12 @@ app.get('/screening/:screeningId/earnings', function(req, res, next) {
 
 // Add endpoint for posting a new screening
 app.patch('/screening/:screeningId', function(req, res, next) {
-    screeningAPICalls.postScreening(req.body, req.params.screeningId).then(data => {
+    screeningAPICalls.patchScreening(req.body, req.params.screeningId).then(data => {
+        res.send(data);
+    });
+});
+app.post('/screening', function(req, res, next) {
+    screeningAPICalls.postScreening(req.body).then(data => {
         res.send(data);
     });
 });
@@ -129,8 +134,8 @@ app.post('/hall/:hallId/rows', function(req, res, next) {
 });
 
 // Add endpoint for updating a row in a hall
-app.patch('/hall/:hallId/rows/:rowId', function(req, res, next) {
-    hallAPICalls.updateRowInHall(req.params.hallId, req.params.rowId, req.body.row).then(data => {
+app.patch('/hall/rows/:rowId', function(req, res, next) {
+    hallAPICalls.updateRowInHall( req.params.rowId, req.body).then(data => {
         res.send(data);
     });
 });

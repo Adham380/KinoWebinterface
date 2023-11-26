@@ -91,15 +91,15 @@ async function addRowsToHall (hallId, rows) {
     return data;
 }
 
-async function updateRowInHall (hallId, rowId, row) {
-    const response = await fetch('http://localhost:8080/hall/' + hallId + '/row/' + rowId, {
+async function updateRowInHall (rowId, row) {
+    const response = await fetch('http://localhost:8080/hall/rows/' + rowId, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(row),
     });
-    const data = await response.json();
+    const data = await response.text();
     console.log(data);
     return data;
 }

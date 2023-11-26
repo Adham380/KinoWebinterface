@@ -3,6 +3,11 @@ import {hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
 import {customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
 
 let isAdmin = false;
+//TODO implement proper customer login when all else is done
+let me = {
+    id: 59,
+    name: 'Bobbie',
+}
 
 async function rowBuilder(seatRow, seats, i) {
     console.log(seatRow);
@@ -44,47 +49,64 @@ async function rowBuilder(seatRow, seats, i) {
     addSeatToRowButton.textContent = `+ 1`;
     rowElement.appendChild(addSeatToRowButton);
     addSeatToRowButton.addEventListener('click', function (event) {
-        //Add a seat to the row
-        const rowElement = event.target.parentElement;
-        const seatElement = document.createElement('i');
-        seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
-        seatElement.dataset.id = seats + 1;
-        seatElement.style.fontSize = '24px';
-        seatElement.style.margin = '5px';
-        seatElement.title = `Seat ${seats + 1}`;
-        // Determine the seat's position in the grid
-        seatElement.style.order = seats + 1;
-        seatElement.classList.add('builder_seat');
-        rowElement.insertBefore(seatElement, rowElement.lastChild);
-        //Set the order of the buttons
-        addSeatToRowButton.style.order = rowElement.childElementCount + 1;
-        categorySelector.style.order = rowElement.childElementCount + 2;
-        seats++;
+        hallAPIFunctions.updateRowInHall(seatRow.id, {
+            categoryId: seatRow.category.id,
+            numberOfSeats: seats + 1,
+        }).then((response) => {
+            //If successful, update the seats
+            if (response.status == 200) {
+
+                //Add a seat to the row
+                const rowElement = event.target.parentElement;
+                const seatElement = document.createElement('i');
+                seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
+                seatElement.dataset.id = seats + 1;
+                seatElement.style.fontSize = '24px';
+                seatElement.style.margin = '5px';
+                seatElement.title = `Seat ${seats + 1}`;
+                // Determine the seat's position in the grid
+                seatElement.style.order = seats + 1;
+                seatElement.classList.add('builder_seat');
+                rowElement.insertBefore(seatElement, rowElement.lastChild);
+                //Set the order of the buttons
+                addSeatToRowButton.style.order = rowElement.childElementCount + 1;
+                categorySelector.style.order = rowElement.childElementCount + 2;
+                seats++;
+
+            }
+        });
     });
-    const removeSeatToRowButton = document.createElement('button');
-    removeSeatToRowButton.className = 'removeSeatFromRow-button';
-    removeSeatToRowButton.dataset.id = i;
-    removeSeatToRowButton.textContent = `- 1`;
-    removeSeatToRowButton.addEventListener('click', function (event) {
+    const removeSeatFromRowButton = document.createElement('button');
+    removeSeatFromRowButton.className = 'removeSeatFromRow-button';
+    removeSeatFromRowButton.dataset.id = i;
+    removeSeatFromRowButton.textContent = `- 1`;
+    removeSeatFromRowButton.addEventListener('click', function (event) {
         //Remove a seat from the row
         const rowElement = event.target.parentElement;
-        //If child is the button itself, do not remove it
-        if (rowElement.childElementCount == 1) {
-            //This row has no seats and should thus be removed. All othe rows should have their id updated
-            // rowElement.remove();
+        console.log(rowElement);
+        //The last seat in rowElement is the seat to be removed. Check by class
+        const seatElement = rowElement.querySelectorAll('.builder_seat')
+        console.log(seatElement);
+        //If there is only one seat, do not remove it
+        if (rowElement.childElementCount == 3) {
             return;
         }
-        //Get all children with the class builder_seat
-        //Remove the last seat
-        // seatsArray[seatsArray.length - 1].remove();
-        //Remove seat with the highest id
-        rowElement.querySelector(`[title="Seat ${seats}"]`).remove();
-        //Set the order of the buttons
-        addSeatToRowButton.style.order = rowElement.childElementCount + 1;
-        categorySelector.style.order = rowElement.childElementCount + 2;
-        seats--;
+        //Remove the seat from the server
+        hallAPIFunctions.updateRowInHall(seatRow.id, {
+            categoryId: seatRow.category.id,
+            numberOfSeats: seats - 1,
+        }).then((response) => {
+            //If successful, update the seats
+            if (response.status == 200) {
+                seatElement[seatElement.length - 1].remove();
+                //Set the order of the buttons
+                addSeatToRowButton.style.order = rowElement.childElementCount + 1;
+                categorySelector.style.order = rowElement.childElementCount + 2;
+                seats--;
+            }
+        });
     });
-    rowElement.prepend(removeSeatToRowButton);
+    rowElement.prepend(removeSeatFromRowButton);
     //Create the category selector
     const categorySelector = document.createElement('select');
     categorySelector.className = 'row-category-selector';
@@ -270,7 +292,7 @@ document.addEventListener('click', async function(event) {
         //                 seatsElement.appendChild(seatIcon);
         //Create the rows
         for (let i = 0; i < rows; i++) {
-            rowBuilder(seats, i);
+            await rowBuilder(seats, i);
         }
         //Under the last row is a button to add or remove rows
         const addRowButton = document.createElement('button');
@@ -390,10 +412,7 @@ document.addEventListener('click', async function(event) {
         await createScreeningForm();
     }
 })
-const me = {
-    id: 20,
-    name: 'Bobbie',
-}
+
 const seatsReservedByMe = [
     {
         seatId: 1,
@@ -644,6 +663,10 @@ async function fetchData() {
                     if(finalizeButton){
                         finalizeButton.remove();
                     }
+                    const KinosaalBuilder = document.querySelector('#Kinosaal-Builder');
+                    if(KinosaalBuilder){
+                        KinosaalBuilder.style.display = 'none';
+                    }
                 }
             });
         }
@@ -737,7 +760,7 @@ async function createScreeningForm(screeningData) {
         const film = document.getElementsByName('film')[0].value;
         const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
         const played = document.getElementsByName('played')[0].value;
-        screeningAPIFunctions.addNewScreening(film, parseInt(playsInHallId), played).then(() => {
+        screeningAPIFunctions.addNewScreening( parseInt(playsInHallId),film, played).then(() => {
             //Click back button
             document.querySelector('.back-button').click();
             //Remove the form
@@ -837,7 +860,7 @@ async function editCinemaHall(screeningId){
     //Populate the Kinosaal-Builder
     //Remove all innerHTML from the
     for(let i = 0; i < hall.seatRows.length; i++){
-        rowBuilder(hall.seatRows[i],hall.seatRows[i].seats.length, i);
+        await rowBuilder(hall.seatRows[i], hall.seatRows[i].seats.length, i);
     }
 }
 

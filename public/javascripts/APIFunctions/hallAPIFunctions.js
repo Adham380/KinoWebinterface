@@ -121,19 +121,21 @@ async function addRowsToHall(hallId, rows) {
 }
 
 // JavaScript function to update a row in a hall
-async function updateRowInHall(hallId, rowId, row) {
+async function updateRowInHall(rowId, row) {
     try {
-        const response = await fetch(`/hall/${hallId}/rows/${rowId}`, {
+        console.log("This is the row: " + row);
+        console.log("This is the rowId: " + rowId);
+        console.log(rowId);
+        const response = await fetch(`/hall/rows/${rowId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(row),
         });
-        const result = await response.text();
-        return result;
+        return response;
     } catch (error) {
-        console.error(`Error updating row with ID ${rowId} in hall with ID ${hallId}:`, error);
+        console.error(`Error updating row with ID ${rowId}:`, error);
     }
 }
 async function getAllHalls() {

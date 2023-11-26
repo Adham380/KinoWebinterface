@@ -21,7 +21,8 @@ async function fetchAllScreenings() {
 
 async function addNewScreening(playsInHallId, film, played) {
     try {
-        const response = await fetch('/screenings', {
+        console.log(playsInHallId, film, played);
+        const response = await fetch('/screening', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
