@@ -7,7 +7,6 @@ export async function createCustomer(name) {
             body: JSON.stringify({ name }),
         });
         const customer = await response.json();
-        console.log(customer);
         return customer;
     } catch (error) {
         console.error('Error creating customer:', error);
@@ -23,7 +22,6 @@ export async function addReservationForCustomer(customerId, filmScreeningId, sea
             body: JSON.stringify({ filmScreeningId, seatId }),
         });
         const reservation = await response.json();
-        console.log(reservation);
         return reservation;
     } catch (error) {
         console.error('Error adding reservation:', error);
@@ -35,7 +33,6 @@ export async function getReservationsForCustomer(customerId) {
     try {
         const response = await fetch(`/customer/${customerId}/reservations`);
         const reservations = await response.json();
-        console.log(reservations);
         return reservations;
     } catch (error) {
         console.error('Error getting reservations:', error);
@@ -49,7 +46,6 @@ export async function deleteReservationForCustomer(customerId, reservationId) {
             method: 'DELETE',
         });
         const result = await response.text();
-        console.log(result);
         return result;
     } catch (error) {
         console.error('Error deleting reservation:', error);
@@ -63,7 +59,6 @@ export async function transformReservationIntoBooking(reservationId) {
             method: 'POST'
         });
         const booking = await response.json();
-        console.log(booking);
         return booking;
     } catch (error) {
         console.error('Error transforming reservation into booking:', error);
@@ -75,9 +70,7 @@ export async function getAllBookingsForCustomer(customerId) {
     try {
         const response = await fetch(`/customer/${customerId}/bookings`);
         const bookings = await response.json();
-        console.log(bookings);
         const listOfBookingIds = bookings.map(booking => booking.id);
-        console.log(listOfBookingIds);
         return listOfBookingIds;
     } catch (error) {
         console.error('Error getting all bookings:', error);
@@ -93,7 +86,6 @@ export async function addNewBookingToCustomer(customerId, seatId, filmScreeningI
             body: JSON.stringify({ seatId, filmScreeningId }),
         });
         const booking = await response.json();
-        console.log(booking);
         return booking;
     } catch (error) {
         console.error('Error adding new booking:', error);
@@ -107,7 +99,6 @@ export async function deleteBookingForCustomer(customerId, bookingId) {
             method: 'DELETE',
         });
         const result = await response.text();
-        console.log(result);
         return result;
     } catch (error) {
         console.error('Error deleting booking:', error);

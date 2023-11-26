@@ -75,12 +75,17 @@ app.get('/hall/:hallId', function(req, res, next) {
 });
 
 // Add endpoint for creating a new seating category
-app.post('/seatingCategories', function(req, res, next) {
+app.post('/seatingCategory', function(req, res, next) {
     hallAPICalls.createSeatingCategory(req.body.name, req.body.price).then(data => {
         res.send(data);
     });
 });
 
+app.delete('/seatingCategory/:seatingCategoryId', function(req, res, next) {
+    hallAPICalls.deleteSeatingCategory(req.params.seatingCategoryId).then(data => {
+        res.send(data);
+    });
+})
 // Add endpoint for fetching all seating categories
 app.get('/seatingCategories', function(req, res, next) {
     hallAPICalls.fetchSeatingCategories().then(data => {

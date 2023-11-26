@@ -4,10 +4,11 @@ import {customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
 
 let isAdmin = false;
 
-function rowBuilder(seats, i){
+async function rowBuilder(seatRow, seats, i) {
+    console.log(seatRow);
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
-    rowElement.dataset.id = i;
+    rowElement.dataset.id = seatRow.id;
     rowElement.style.display = "flex";
     let rowElementTextDiv = document.createElement('div');
     rowElementTextDiv.className = 'row-text';
@@ -21,7 +22,7 @@ function rowBuilder(seats, i){
     // rowElement.style.justifyContent = 'center';
     // rowElement.style.alignItems = 'center';
     //Create the seats
-    for(let j = 0; j < seats; j++){
+    for (let j = 0; j < seats; j++) {
         const seatElement = document.createElement('i');
         seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
         seatElement.dataset.id = j;
@@ -42,7 +43,7 @@ function rowBuilder(seats, i){
     addSeatToRowButton.dataset.id = i;
     addSeatToRowButton.textContent = `+ 1`;
     rowElement.appendChild(addSeatToRowButton);
-    addSeatToRowButton.addEventListener('click', function(event){
+    addSeatToRowButton.addEventListener('click', function (event) {
         //Add a seat to the row
         const rowElement = event.target.parentElement;
         const seatElement = document.createElement('i');
@@ -64,11 +65,11 @@ function rowBuilder(seats, i){
     removeSeatToRowButton.className = 'removeSeatFromRow-button';
     removeSeatToRowButton.dataset.id = i;
     removeSeatToRowButton.textContent = `- 1`;
-    removeSeatToRowButton.addEventListener('click', function(event){
+    removeSeatToRowButton.addEventListener('click', function (event) {
         //Remove a seat from the row
         const rowElement = event.target.parentElement;
         //If child is the button itself, do not remove it
-        if(rowElement.childElementCount == 1){
+        if (rowElement.childElementCount == 1) {
             //This row has no seats and should thus be removed. All othe rows should have their id updated
             // rowElement.remove();
             return;
@@ -89,20 +90,133 @@ function rowBuilder(seats, i){
     categorySelector.className = 'row-category-selector';
     categorySelector.style.order = seats + 2;
     categorySelector.dataset.id = seats
-    categorySelector.textContent = `Kategorie`;
+    categorySelector.textContent = `category`;
+    //Get all available categories from the server
+    const categories = await hallAPIFunctions.fetchSeatingCategories();
     //Create the options
-    const option1 = document.createElement('option');
-    option1.value = 'Parkett';
-    option1.textContent = 'Parkett';
-    categorySelector.appendChild(option1);
-    const option2 = document.createElement('option');
-    option2.value = 'Loge';
-    option2.textContent = 'Loge';
-    categorySelector.appendChild(option2);
-    const option3 = document.createElement('option');
-    option3.value = 'Loge mit Service';
-    option3.textContent = 'Loge mit Service';
-    categorySelector.appendChild(option3);
+    for (let i = 0; i < categories.length; i++) {
+        const option = document.createElement('option');
+        option.value = categories[i].id;
+        option.textContent = categories[i].name;
+        categorySelector.appendChild(option);
+    }
+    //Add a field to create a new category
+    const newCategoryOption = document.createElement('option');
+    newCategoryOption.value = 'new';
+    newCategoryOption.textContent = 'New category';
+    categorySelector.appendChild(newCategoryOption);
+    //Add the event listener to the category selector. Create a submit button and a text field
+    categorySelector.addEventListener('change', function (event) {
+        if (event.target.value == 'new') {
+            //Create the form
+            const form = document.createElement('form');
+            form.className = 'category-form';
+            //Create the input fields
+            const inputName = document.createElement('input');
+            inputName.type = 'text';
+            inputName.name = 'name';
+            inputName.placeholder = 'Name';
+            form.appendChild(inputName);
+            const inputPrice = document.createElement('input');
+            inputPrice.type = 'text';
+            inputPrice.name = 'price';
+            inputPrice.placeholder = 'Price';
+            form.appendChild(inputPrice);
+            //Create the submit button
+            const submitButton = document.createElement('button');
+            submitButton.type = 'submit';
+            submitButton.textContent = 'Submit';
+            form.appendChild(submitButton);
+            //Add the form to the category selector
+            categorySelector.parentElement.appendChild(form);
+            //Add the event listener to the form
+            form.addEventListener('submit', async function (event) {
+                //for now just add the category to the dummyCategories
+                event.preventDefault();
+                //Get the values from the form
+                const name = document.getElementsByName('name')[0].value;
+                const price = document.getElementsByName('price')[0].value;
+                //Create the category
+                const category = await hallAPIFunctions.createSeatingCategory(name, price)
+                console.log(category);
+                //For all rows, add the category to the category selector
+                //Get all row-category selectors:
+                const categorySelectors = document.querySelectorAll('.row-category-selector');
+                console.log(categorySelectors);
+                for (let i = 0; i < categorySelectors.length; i++) {
+                    //Add the category to the category selector
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    //Append third to last
+                    categorySelectors[i].insertBefore(option, categorySelectors[i].children[categorySelectors[i].children.length - 2]);
+                }
+                //Remove the form
+                form.remove();
+                //Set the category selector to the newly created category
+                // categorySelector.value = category.id;
+            })
+        }
+    })
+    //Remove categories
+    const removeCategoriesOption = document.createElement('option');
+    removeCategoriesOption.value = 'remove';
+    removeCategoriesOption.textContent = 'Remove category';
+    categorySelector.appendChild(removeCategoriesOption);
+    //Add the event listener to the category selector. Create a submit button and a text field
+    categorySelector.addEventListener('change', function (event) {
+        if (event.target.value == 'remove') {
+            //Create the form
+            const form = document.createElement('form');
+            form.className = 'category-form';
+            //Create the input fields
+            const inputName = document.createElement('input');
+            inputName.type = 'text';
+            inputName.name = 'name';
+            inputName.placeholder = 'Name';
+            form.appendChild(inputName);
+            //Create the submit button
+            const submitButton = document.createElement('button');
+            submitButton.type = 'submit';
+            submitButton.textContent = 'Submit';
+            form.appendChild(submitButton);
+            //Add the form to the category selector
+            categorySelector.parentElement.appendChild(form);
+            //Add the event listener to the form
+            form.addEventListener('submit', async function (event) {
+                //for now just add the category to the dummyCategories
+                event.preventDefault();
+                //Get the values from the form
+                const name = document.getElementsByName('name')[0].value;
+                //Remove the category from the server with the seatRow id
+                //Get the id from the category value
+                //Find category with the name from the category selector
+                const categories = await hallAPIFunctions.fetchSeatingCategories();
+                let category;
+                for (let i = 0; i < categories.length; i++) {
+                    if (categories[i].name == name) {
+                        category = categories[i];
+                        break;
+                    }
+                }
+                //Remove the category from the server
+                await hallAPIFunctions.deleteSeatingCategoryById(category.id)
+                const categorySelectors = document.querySelectorAll('.row-category-selector');
+                console.log(categorySelectors);
+                for (let i = 0; i < categorySelectors.length; i++) {
+                    //Remove the category from the category selector
+                    //Get the option with the value of the category id
+                    const option = categorySelectors[i].querySelector(`[value="${category.id}"]`);
+                    //Remove the option
+                    option.remove();
+                }
+                //Remove the form
+                form.remove();
+                //Set the category selector to the newly created category
+                categorySelector.value = category.id;
+            })
+        }
+    })
     rowElement.appendChild(categorySelector);
     // Get the Kinosaal-Builder element
     const kinosaalBuilder = document.getElementById('Kinosaal-Builder');
@@ -203,8 +317,8 @@ document.addEventListener('click', async function(event) {
             //Create the row object
             const rowObject = {
                 id: parseInt(row.dataset.id),
-                sitze: [],
-                Kategorie: row.querySelector('.row-category-selector').value
+                seats: [],
+                category: row.querySelector('.row-category-selector').value
             };
             //Iterate over the seats
             const seats = row.querySelectorAll('.builder_seat');
@@ -218,7 +332,7 @@ document.addEventListener('click', async function(event) {
                     buchung_stat: false
                 };
                 //Add the seat object to the row object
-                rowObject.sitze.push(seatObject);
+                rowObject.seats.push(seatObject);
             });
             //Add the row object to the Kinosaal object
             Kinosaal.reihen.push(rowObject);
@@ -341,14 +455,14 @@ let dummySeatsGenerator = (movieId) => {
   "reihen": [
     {
       "id": 0,
-      "sitze": [
+      "seats": [
         {
           "position": 0,
           "reserviert": true,
           "gebucht": true
         }
       ],
-      "Kategorie": "Parkett"
+      "category": "Parkett"
     }
   ]
 }
@@ -360,7 +474,7 @@ const Kinosaale = [
         "reihen": [
             {
                 "id": 0,
-                "sitze": [
+                "seats": [
                     {
                         "id": 0,
                         "position": 0,
@@ -368,7 +482,7 @@ const Kinosaale = [
                         "gebucht": true
                     }
                 ],
-                "Kategorie": "Parkett"
+                "category": "Parkett"
             }
         ]
     },
@@ -378,8 +492,8 @@ const Kinosaale = [
         reihen: [
             {
                 id: 1,
-                sitze: dummySeatsForMovieTwo,
-                Kategorie: 'Parkett'
+                seats: dummySeatsForMovieTwo,
+                category: 'Parkett'
             }
         ]
     }
@@ -400,8 +514,8 @@ let dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
         // Create a new row
         const newRow = {
             id: rowId,
-            sitze: [],
-            Kategorie: 'Randomly Assigned Category' // Assign category as needed
+            seats: [],
+            category: 'Randomly Assigned Category' // Assign category as needed
         };
 
         // Determine a random number of seats for this row, for example between 10 and 15
@@ -413,7 +527,7 @@ let dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
             if(Math.random() > 0.5){
 
             }
-            newRow.sitze.push({
+            newRow.seats.push({
                 id: seatIdCounter++, // Use and increment the seatIdCounter
                 reservierungs_stat: Math.random() > 0.5,
                 reihe: rowId,
@@ -432,7 +546,6 @@ let dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
 
 dummySeatsGeneratorForCinemaHall(1);
 dummySeatsGeneratorForCinemaHall(2);
-console.log(Kinosaale);
 const dummyScreenings = [
     {
         id: 1,
@@ -462,8 +575,6 @@ async function fetchData() {
     // When a specific screening is clicked, fetch its details and start checking seat availability
     document.addEventListener('click', async function(event) {
         if (event.target.matches('.screening')) {
-            console.log(event.target);
-            console.log(event.target.dataset.id);
             const id = event.target.dataset.id;
             await updateScreeningDetails(id);
             //hide all other screenings
@@ -556,7 +667,6 @@ fetchData();
 // Function to update an existing screening (dummy implementation)
 async function patchScreening(screeningData) {
     // Send a PATCH or PUT request to the server
-    console.log('Updating screening:', screeningData)
     // Update the screenings display
     await screeningAPIFunctions.updateScreening(screeningData.id, screeningData.film, parseInt(screeningData.playsInHallId), screeningData.played).then(() => {
         //Click back button
@@ -584,7 +694,6 @@ async function createScreeningForm(screeningData) {
     const inputplaysInHallId = document.createElement('select');
     //Get the Kinosaale from the server. For now just use the dummyKinosaale array
     const halls = await hallAPIFunctions.getAllHalls();
-    console.log(halls);
     for(let i = 0; i < halls.length; i++){
         const option = document.createElement('option');
         option.value = halls[i];
@@ -652,17 +761,12 @@ async function populateScreeningForm(screeningData) {
     const inputFilm = document.getElementsByName('film')[0];
     const inputplaysInHallId = document.getElementsByName('playsInHallId')[0];
     const inputStattgefundenStat = document.getElementsByName('played')[0];
-    console.log(inputStattgefundenStat);
-    console.log(screeningData.played);
-    console.log(inputplaysInHallId)
     //Populate the input fields
     inputFilm.value = screeningData.film;
-    console.log(screeningData.playsInHallId);
     inputplaysInHallId.value = screeningData.playsInHallId;
     //Set selected to the one that contains the screeningData.playsInHallId
     //The string of the options will be Hall + id
     inputplaysInHallId.querySelector(`[value="${screeningData.playsInHallId}"]`).selected = true;
-    console.log(inputplaysInHallId.querySelector(`[value="Hall ${screeningData.playsInHallId}"]`));
     //If stattgefunden, select the value true
     if(screeningData.played){
         inputStattgefundenStat.querySelector(`[value="true"]`).selected = true;
@@ -711,42 +815,29 @@ async function editScreening(screeningId){
 
 }
 async function editCinemaHall(screeningId){
-    //Fetch the cinema hall that the screening is in
-    // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
-    // const screening = await response.json();
-    //Find the screening with the id
-    //playsInHallId
+    //Hide the screening-details
+    document.getElementById('screening-details').style.display = 'none';
+    //Screening innerhtml should be empty
+    document.getElementById('screening-details').innerHTML = '';
+    document.querySelector('.seatsElement').innerHTML = '';
+    //Show the Kinosaal-Builder
+    document.getElementById('Kinosaal-Builder').style.display = 'block';
     const screeningData = await screeningAPIFunctions.fetchAllScreenings().then(screenings => {
         return screenings.find(screening => screening.id == screeningId);
     })
+    //Stop interval for seat checking
+    clearInterval(seatCheckInterval);
     // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
     //Get the Kinosaal
     // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInHallId}`);
     // const Kinosaal = await response2.json();
     //Find the Kinosaal with the id
-    const hall = Kinosaale.find(Kinosaal => Kinosaal.id == screeningData.playsInHallId);
+    const hall = await hallAPIFunctions.getHallById(screeningData.playsInHallId);
     console.log(hall);
     //Populate the Kinosaal-Builder
-    //Remove all innerHTML from the Kinosaal-Builder
-    document.getElementById('Kinosaal-Builder').innerHTML = '';
-    //use the rowBuilder function to create the Kinosaal
-    //Create the rows
-    for (let i = 0; i < hall.reihen.length; i++) {
-        rowBuilder(hall.reihen[i].sitze.length, i);
-        //Populate the seats
-        const seats = document.querySelectorAll(`[data-id="${i}"] .builder_seat`);
-        for(let j = 0; j < seats.length; j++){
-            //Check if the seat is reserved
-            if(hall.reihen[i].sitze[j].reservierungs_stat){
-                //Add the reserved class
-                seats[j].classList.add('reserved');
-                //Change the color to red
-                seats[j].style.color = 'red';
-            }
-        }
-        //Populate the category selector
-        const categorySelector = document.querySelectorAll(`[data-id="${i}"] .row-category-selector`)[0];
-        categorySelector.value = hall.reihen[i].Kategorie;
+    //Remove all innerHTML from the
+    for(let i = 0; i < hall.seatRows.length; i++){
+        rowBuilder(hall.seatRows[i],hall.seatRows[i].seats.length, i);
     }
 }
 
@@ -755,14 +846,12 @@ async function updateScreenings() {
     try {
         //Get from localhost localhost:8080/screening
         const screenings = await screeningAPIFunctions.fetchAllScreenings()
-        console.log(screenings);
         // const screenings = dummyScreenings;
         const screeningsElement = document.getElementById('screenings');
         //Filter out screenings that have already happened
         const upcomingScreenings = screenings.filter(screening => !screening.played);
         screeningsElement.innerHTML = ''; // Clear current listings
         // Iterate over screenings and create elements for each one
-        console.log(upcomingScreenings);
         upcomingScreenings.forEach(screening => {
             const screeningElement = document.createElement('div');
             screeningElement.className = 'screening';
@@ -812,14 +901,13 @@ async function startSeatChecking(screeningId) {
     async function checkSeats() {
         try {
             const seatsElement = document.getElementById('seats');
+            seatsElement.classList.add('loading');
             seatsElement.style.display = 'flex';
             seatsElement.style.flexWrap = 'wrap';
             const screening = await screeningAPIFunctions.getScreeningById(screeningId)
             const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
             const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
-            console.log(screeningId)
             const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
-            console.log(screeningBookings)
             const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
             let myReservationsForScreening = [];
             //Check if I have a reservation that has a seat equal to the one in screeningReservations
@@ -829,11 +917,8 @@ async function startSeatChecking(screeningId) {
                     myReservationsForScreening.push(screeningReservations[i]);
                 }
             }
-            console.log("These are all my reservations: " + myReservationsForScreening);
             const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
             let myBookingsForScreening = [];
-            console.log("These are all my bookings: " + myBookings);
-            console.log(myBookingsForScreening[0]);
             //Check if I have a booking that has a seat equal to the one in screeningBookings
             for(let i = 0; i < screeningBookings.length; i++){
                 //Check if I have a booking for this seat
@@ -849,7 +934,6 @@ async function startSeatChecking(screeningId) {
                     maxSeatsPerRow = row.seats.length;
                 }
             })
-            console.log(maxSeatsPerRow);
             //This should be calculated based on the number of seats in the screening and vw
             seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
             seatsElement.innerHTML = ''; // Clear current seat listings
@@ -880,30 +964,25 @@ async function startSeatChecking(screeningId) {
                     if (myReservationsForScreening.find(reservation => reservation == seat.id)) {
                         isReservedByMe = true;
                     }
-                    console.log("This is reserved by me?: " + isReservedByMe + " for seat: " + seat.id);
                     if (isReservedByMe) {
                         // alert('This seat is already reserved by you')
                         seatIcon.style.color = 'green';
                         seatIcon.classList.add('selected');
-                        console.log('reserved by me');
                     }
                     if (screeningBookings.find(booking => booking == seat.id)) {
                         // alert('This seat is already booked')
                         seatIcon.style.color = 'blue';
                         seatIcon.classList.add('booked');
-                        console.log('booked');
                     }
                     if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
                         // alert('This seat is already booked')
                         seatIcon.style.color = 'red';
                         seatIcon.classList.add('reserved');
-                        console.log('reserved');
                     }
                     if (myBookingsForScreening.find(booking => booking == seat.id)) {
                         // alert('This seat is already booked by you')
                         seatIcon.style.color = 'blue';
                         seatIcon.classList.add('booked');
-                        console.log('booked');
                     }
                     const seatWidth = "2vw"
                     seatIcon.style.fontSize = seatWidth;
@@ -921,7 +1000,6 @@ async function startSeatChecking(screeningId) {
                        const numberOfSeats = row.seats.length;
                        const emptySpaceWidth = (maxSeatsPerRow - numberOfSeats) * parseFloat(seatWidth) + parseFloat(margin) * (maxSeatsPerRow - numberOfSeats);
                        const marginLeft = emptySpaceWidth / 2; // Centering the seats by dividing the empty space by two.
-                       console.log(marginLeft);
                        seatIcon.style.marginLeft = `${marginLeft + 0.4}vw`; // Apply the calculated margin to the first seat.
                    }
                    //Add hover of position and category on seat
@@ -939,6 +1017,8 @@ async function startSeatChecking(screeningId) {
                 seatsElement.appendChild(rowElement);
 
             });
+            seatsElement.classList.remove('loading');
+            seatsElement.classList.add('seatsElement');
             await updatePrice(screeningId);
         } catch (error) {
             console.error('Error fetching seats:', error);
@@ -974,7 +1054,6 @@ async function checkSeatStatus(seatId, seatIcon) {
     }
 }
 async function updatePrice(screeningId){
-    console.log('screeningId: ' + screeningId);
     const totalPriceToPayHtml = document.createElement('p');
     //If element does not exist yet, create it
     if(!document.querySelector('.total-price-to-pay')) {
@@ -993,7 +1072,6 @@ async function updatePrice(screeningId){
     for(let i = 0; i < reservationsForScreening.length; i++){
         //Get the seat
         const seat = await hallAPIFunctions.getHallById(screening.playsInHallId).then(hall => {
-            console.log("Hall: " + hall);
             return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
         })
         //Get the category of the seat
@@ -1003,7 +1081,6 @@ async function updatePrice(screeningId){
         //Add the price to the total price
         totalPrice += price;
     }
-    console.log(totalPrice);
     //Update the total price to pay
     document.querySelector('.total-price-to-pay').textContent = `Total price to pay: ${totalPrice}`;
     //Add the total price to pay to the screening details
@@ -1058,11 +1135,9 @@ async function attemptSeatReservation(seatId, seatElement, screeningId) {
 
 // Function to finalize the reservation
 async function finalizeReservation() {
-    console.log('Finalizing reservation');
     //get all my reserved seats for this screening
     const reservations = await getReservedSeatsForScreening(document.querySelector('#screening-details').dataset.id);
     for(let reservationsIndex in reservations){
-        console.log(reservations[reservationsIndex]);
        customerAPIFunctions.addNewBookingToCustomer(me.id, reservations[reservationsIndex].seatId, reservations[reservationsIndex].filmScreeningId).then(() => {
            //Remove the selected class
            const hmtlReservations = document.querySelectorAll('.selected');

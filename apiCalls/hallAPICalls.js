@@ -50,21 +50,29 @@ async function finishHall (hallId) {
     return data;
 }
 
-async function createSeatingCategory (hallId, seatingCategory) {
-    const response = await fetch('http://localhost:8080/hall/' + hallId + '/seatingCategory', {
+async function createSeatingCategory (name, price) {
+    const response = await fetch('http://localhost:8080/seatingCategory', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(seatingCategory),
+        body: JSON.stringify({name: name, price: price}),
     });
     const data = await response.json();
     console.log(data);
     return data;
 }
+async function deleteSeatingCategory (seatingCategoryId) {
+    const response = await fetch('http://localhost:8080/seatingCategory/' + seatingCategoryId, {
+        method: 'DELETE',
+    });
+    const data = await response.text();
+    return data;
+
+}
 
 async function fetchSeatingCategories (hallId) {
-    const response = await fetch('http://localhost:8080/hall/' + hallId + '/seatingCategories');
+    const response = await fetch('http://localhost:8080/seatingCategories');
     const data = await response.json();
     console.log(data);
     return data;
@@ -106,5 +114,6 @@ module.exports = {
     addRowsToHall,
     updateRowInHall,
     getAllHalls,
-    getHallById
+    getHallById,
+    deleteSeatingCategory
 }

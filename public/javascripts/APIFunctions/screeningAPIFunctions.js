@@ -29,7 +29,6 @@ async function addNewScreening(playsInHallId, film, played) {
             body: JSON.stringify({ playsInHallId, film, played }),
         });
         const newScreening = await response.json();
-        console.log(newScreening);
         return newScreening;
     } catch (error) {
         console.error('Error adding new screening:', error);
@@ -46,7 +45,6 @@ async function updateScreening(screeningId, film, playsInHallId, played) {
             body: JSON.stringify({ film, playsInHallId, played }),
         });
         const updatedScreening = await response.json();
-        console.log(updatedScreening);
         return updatedScreening;
     } catch (error) {
         console.error(`Error updating screening with ID ${screeningId}:`, error);
@@ -55,7 +53,6 @@ async function updateScreening(screeningId, film, playsInHallId, played) {
 
 async function calculateEarningsFromScreening(screeningId) {
     try {
-        console.log("Calculating earnings for screening with ID " + screeningId);
         const response = await fetch(`/screening/${screeningId}/earnings`);
         const earnings = await response.json();
         return earnings.value;
@@ -71,7 +68,6 @@ async function getReservedSeats(screeningId){
 async function getBookedSeats(screeningId){
     const response = await fetch('/screening/' + screeningId + '/bookedSeats');
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
