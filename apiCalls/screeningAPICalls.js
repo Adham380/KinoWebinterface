@@ -21,6 +21,7 @@ async function getBookedSeats(screeningId){
     const data = await response.json();
     //It's a list of seatIds that are reserved
     const bookedSeats = [];
+    console.log(data);
     data.forEach(seat => {
         bookedSeats.push(seat.seatId);
     })

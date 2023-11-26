@@ -1,6 +1,6 @@
-import { screeningAPIFunctions } from './APIFunctions/screeningAPIFunctions.js';
-import { hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
-import { customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
+import {screeningAPIFunctions} from './APIFunctions/screeningAPIFunctions.js';
+import {hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
+import {customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
 
 let isAdmin = false;
 
@@ -492,7 +492,7 @@ async function fetchData() {
                 document.getElementById('screening-details').appendChild(editCinemaHallButton);
             }
             // Start checking seat availability for this screening
-            startSeatChecking(id); // Start checking seat availability for this screening
+            await startSeatChecking(id); // Start checking seat availability for this screening
             // Show a booking button if the user is logged in
             if (me) {
                 //If it does not exist yet, create it
@@ -799,35 +799,37 @@ let seatCheckInterval; // Define a variable to store the interval ID
 
 // Function to start checking seat availability
 async function startSeatChecking(screeningId) {
-    const seatsElement = document.getElementById('seats');
-    seatsElement.style.display = 'flex';
-    seatsElement.style.flexWrap = 'wrap';
-    const screening = await screeningAPIFunctions.getScreeningById(screeningId)
-    const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
-    const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id)
-    const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
-    //screeningReservations and screeningBookings are arrays of seatIds with no keys
-    const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
-    console.log(screeningId)
-    const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId)
-    console.log("myReservations: ", myReservations)
-    console.log("myBookings: ", myBookings)
-    console.log("screeningReservations: ", screeningReservations)
-    console.log("screeningBookings: ", screeningBookings)
-    // Assuming a max number of seats per row for layout purposes
-    //check every object in hall.seatRows and check which is the longest
-    let maxSeatsPerRow = 0;
-    hall.seatRows.forEach(row => {
-        if(row.seats.length > maxSeatsPerRow){
-            maxSeatsPerRow = row.seats.length;
-        }
-    })
-    console.log(maxSeatsPerRow);
-    //This should be calculated based on the number of seats in the screening and vw
-    seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
+
 
     async function checkSeats() {
         try {
+            const seatsElement = document.getElementById('seats');
+            seatsElement.style.display = 'flex';
+            seatsElement.style.flexWrap = 'wrap';
+            const screening = await screeningAPIFunctions.getScreeningById(screeningId)
+            const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
+            //These are full reservation objects.
+            const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id)
+            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+            //screeningReservations and screeningBookings are arrays of seatIds with no keys
+            const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
+            console.log(screeningId)
+            const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId)
+            console.log("myReservations: ", myReservations)
+            console.log("myBookings: ", myBookings)
+            console.log("screeningReservations: ", screeningReservations)
+            console.log("screeningBookings: ", screeningBookings)
+            // Assuming a max number of seats per row for layout purposes
+            //check every object in hall.seatRows and check which is the longest
+            let maxSeatsPerRow = 0;
+            hall.seatRows.forEach(row => {
+                if(row.seats.length > maxSeatsPerRow){
+                    maxSeatsPerRow = row.seats.length;
+                }
+            })
+            console.log(maxSeatsPerRow);
+            //This should be calculated based on the number of seats in the screening and vw
+            seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
             seatsElement.innerHTML = ''; // Clear current seat listings
             // Iterate over seats and create icons for each one
             // Update the function to mark the seat as reserved if it is already taken
@@ -856,7 +858,7 @@ async function startSeatChecking(screeningId) {
                     if (myReservations.find(reservation => reservation.seatId == seat.id)) {
                         isReservedByMe = true;
                     }
-
+                    console.log("This is reserved by me?: " + isReservedByMe + " for seat: " + seat.id);
                     if (isReservedByMe) {
                         // alert('This seat is already reserved by you')
                         seatIcon.style.color = 'green';
@@ -869,7 +871,7 @@ async function startSeatChecking(screeningId) {
                         seatIcon.classList.add('booked');
                         console.log('booked');
                     }
-                    if (screeningReservations.find(reservation => reservation == seat.id)) {
+                    if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
                         // alert('This seat is already booked')
                         seatIcon.style.color = 'red';
                         seatIcon.classList.add('reserved');
@@ -900,6 +902,14 @@ async function startSeatChecking(screeningId) {
                        console.log(marginLeft);
                        seatIcon.style.marginLeft = `${marginLeft + 0.4}vw`; // Apply the calculated margin to the first seat.
                    }
+                   //Add hover of position and category on seat
+                     seatIcon.addEventListener('mouseover', function(event){
+                        const seatElement = event.target;
+                        const seatId = seatElement.dataset.id;
+                        const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == seatId)).seats.find(seat => seat.id == seatId);
+                        const category = seat.category;
+                        seatElement.title = `Seat ${seat.position} - Category: ${category.name}`;
+                     })
                 })
                 const category = document.createElement('p');
                 category.textContent = `Category: ${row.category.name}`;
@@ -907,7 +917,7 @@ async function startSeatChecking(screeningId) {
                 seatsElement.appendChild(rowElement);
 
             });
-
+            await updatePrice(screeningId);
         } catch (error) {
             console.error('Error fetching seats:', error);
         }
@@ -941,103 +951,109 @@ async function checkSeatStatus(seatId, seatIcon) {
         console.error('Error checking seat status:', error);
     }
 }
-
+async function updatePrice(screeningId){
+    console.log('screeningId: ' + screeningId);
+    const totalPriceToPayHtml = document.createElement('p');
+    //If element does not exist yet, create it
+    if(!document.querySelector('.total-price-to-pay')) {
+        //Create new html element
+        totalPriceToPayHtml.className = 'total-price-to-pay';
+        totalPriceToPayHtml.textContent = 'Total price to pay: 0';
+        document.getElementById('screening-details').appendChild(totalPriceToPayHtml);
+    }
+    const screening = await screeningAPIFunctions.getScreeningById(screeningId);
+    //Get all reservations so far
+    const reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+    //Filter out the reservations that are for the current screening
+    const reservationsForScreening = reservations.filter(reservation => reservation.filmScreeningId == screeningId);
+    //For each seat, check the price
+    let totalPrice = 0;
+    for(let i = 0; i < reservationsForScreening.length; i++){
+        //Get the seat
+        const seat = await hallAPIFunctions.getHallById(screening.playsInHallId).then(hall => {
+            console.log("Hall: " + hall);
+            return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
+        })
+        //Get the category of the seat
+        const category = seat.category;
+        //Get the price of the category
+        const price = category.price;
+        //Add the price to the total price
+        totalPrice += price;
+    }
+    console.log(totalPrice);
+    //Update the total price to pay
+    document.querySelector('.total-price-to-pay').textContent = `Total price to pay: ${totalPrice}`;
+    //Add the total price to pay to the screening details
+}
+async function getReservedSeatsForScreening(screeningId){
+    const reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+    //Filter out the reservations that are for the current screening
+    return reservations.filter(reservation => reservation.filmScreeningId == screeningId);
+}
 /// Function to attempt seat reservation
 async function attemptSeatReservation(seatId, seatElement, screeningId) {
+    // If is already booked by me, return and do nothing
+    const isBookedByMe = seatElement.classList.contains('booked');
+    if (isBookedByMe) {
+        return;
+    }
+    const isReservedByMe = seatElement.classList.contains('selected');
     // If the seat is already selected by the current user, unreserve it
     if (seatElement.classList.contains('selected')) {
-        await unreserveSeat(seatId, seatElement);
-        seatElement.classList.remove('selected');
-        seatElement.style.color = 'gray'; // Change color to gray to indicate available seat
-        return;
+        //Get the reservation
+        const reservation = await customerAPIFunctions.getReservationsForCustomer(me.id).then(reservations => {
+            return reservations.find(reservation => reservation.seatId == seatId);
+        });
+        customerAPIFunctions.deleteReservationForCustomer(me.id, reservation.id).then(() => {
+            seatElement.classList.remove('selected');
+            seatElement.style.color = 'black';
+            updatePrice(screeningId);
+        });
     }
     // If the seat is reserved by someone else, do nothing
     if (seatElement.classList.contains('reserved')) {
         return;
     }
+    if(!isReservedByMe){
+
     // Reserve the seat
     try {
-        // const response = await fetch(`https://your-spring-boot-app.com/reservations`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ seatId }),
-        // });
-        // const reservation = await response.json();
+        customerAPIFunctions.addReservationForCustomer(me.id, screeningId, seatId, ).then(() => {
+            seatElement.classList.add('selected');
+            seatElement.style.color = 'green';
+        }).then(() => {
+            updatePrice(screeningId);
+        });
 
-        // Dummy reservation with 30% failure chance. Replace with the above code when the server is ready to handle reservations
-        const reservation = {
-            success: Math.random() > 0.3
-        };
-
-
-        // If the reservation was successful, change the color of the seat
-        if (reservation.success) {
-            // seatElement.classList.add('selected');
-            seatElement.style.color = 'green'; // Change color to green to indicate selected seat
-            seatsReservedByMe.push({
-                seatId: parseInt(seatId),
-                screeningId: parseInt(screeningId)
-            });
-        } else {
-            alert('This seat cannot be reserved.');
-        }
     } catch (error) {
         console.error('Error reserving seat:', error);
     }
-}
-
-// Function to unreserve a seat
-async function unreserveSeat(seatId, seatElement) {
-    try {
-        // Send a request to the server to unreserve the seat
-        // await fetch(`https://your-spring-boot-app.com/reservations/${seatId}/unreserve`, {
-        //     method: 'DELETE' // Assuming the server has a DELETE endpoint for unreserving
-        // });
-
-        // Dummy unreservation. Replace with the above code when the server is ready to handle unreservations
-        dummySeats[seatId].reservierungs_stat = false;
-        await checkSeatStatus(seatId, seatElement);
-
-
-        // The seat will be unreserved on the server side
-    } catch (error) {
-        console.error('Error unreserving seat:', error);
     }
 }
+
 
 
 // Function to finalize the reservation
 async function finalizeReservation() {
-    //get all the seats that are reserved by me
-    // const response = await fetch(`https://your-spring-boot-app.com/reservations`);
-    // const reservations = await response.json();
-    //Dummy reservations
-    const reservations = seatsReservedByMe;
-
+    console.log('Finalizing reservation');
+    //get all my reserved seats for this screening
+    const reservations = await getReservedSeatsForScreening(document.querySelector('#screening-details').dataset.id);
     for(let reservationsIndex in reservations){
-        //Add to booked seats
-        seatsBookedByMe.push(reservations[reservationsIndex]);
-        //Remove from reserved seats
-        seatsReservedByMe.splice(reservationsIndex, 1);
-        //If it was for real, post to the server post kunde/{id}/bookings
-        //{
-        //   "kundenId": 0,
-        //   "sitzId": 0
-        // }
-        //const response = await fetch(`https://your-spring-boot-app.com/kunde/${me.id}/bookings`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: {
-        //     "kundenId": me.id,
-        //     "sitzId": reservations[reservationsIndex].seatId
-        //     },
+        console.log(reservations[reservationsIndex]);
+       customerAPIFunctions.addNewBookingToCustomer(me.id, reservations[reservationsIndex].seatId, reservations[reservationsIndex].filmScreeningId).then(() => {
+           //Remove the selected class
+           const hmtlReservations = document.querySelectorAll('.selected');
+              for(let i = 0; i < hmtlReservations.length; i++){
+                hmtlReservations[i].classList.remove('selected');
+                //remove reserved class
+                hmtlReservations[i].classList.remove('reserved');
+                //add booked class
+                hmtlReservations[i].classList.add('booked');
+                hmtlReservations[i].style.color = 'blue';
+            }
 
-        // });
-        // const booking = await response.json();
+       });
 
     }
 }

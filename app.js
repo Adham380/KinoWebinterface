@@ -181,7 +181,7 @@ app.get('/customer/:customerId/bookings', function(req, res, next) {
 
 // Add endpoint for adding a new booking to a customer
 app.post('/customer/:customerId/booking', function(req, res, next) {
-    customerAPICalls.addBookingForCustomer(req.params.customerId, req.body.seatId, req.body.filmScreeningId).then(data => {
+    customerAPICalls.addBookingForCustomer(req.params.customerId,  req.body.filmScreeningId, req.body.seatId).then(data => {
         res.send(data);
     });
 });
