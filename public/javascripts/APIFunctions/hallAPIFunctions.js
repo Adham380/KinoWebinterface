@@ -61,7 +61,7 @@ async function createHall(configured, seatRows) {
             },
             body: JSON.stringify({ configured, seatRows }),
         });
-        const newHall = await response.json();
+        const newHall = await response
         return newHall;
     } catch (error) {
         console.error('Error creating hall:', error);

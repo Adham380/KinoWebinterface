@@ -1284,6 +1284,147 @@ document.querySelector('#registration-form').addEventListener('submit', function
     // Send a POST request to the server for registration
 });
 
+async function hallListBuilder(){
+    const halls = await hallAPIFunctions.getAllHalls();
+    console.log(halls);
+    const hallsContainer = document.createElement('div');
+    hallsContainer.className = 'halls';
+    document.body.appendChild(hallsContainer);
+    for (let i = 0; i < halls.length; i++) {
+        const hall = await hallAPIFunctions.getHallById(halls[i]);
+        console.log(hall);
+        const hallElement = document.createElement('div');
+        hallElement.className = 'hall';
+        hallElement.textContent = `Hall ${hall.id}`;
+        hallsContainer.appendChild(hallElement);
+        const deleteHallButton = document.createElement('button');
+        deleteHallButton.className = 'delete-hall-button';
+        deleteHallButton.textContent = 'Delete Cinema Hall';
+        deleteHallButton.addEventListener('click', async function (event) {
+            //Delete the hall
+            await hallAPIFunctions.deleteHallById(hall.id);
+            //Remove the hall from the list of halls
+            hallElement.remove();
+        });
+        hallElement.appendChild(deleteHallButton);
+        if (!hall.configured) {
+            const editHallButton = document.createElement('button');
+            editHallButton.className = 'edit-hall-button';
+            editHallButton.textContent = 'Edit Cinema Hall';
+            editHallButton.addEventListener('click', async function (event) {
+                //Edit the hall
+
+                await editCinemaHall(hall.id);
+                //Hide the Kinosaal-Builder-Button
+                document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
+                //Hide the screen-builder button
+                document.querySelector('.Screening-Builder-Button').style.display = 'none';
+                //Hide all other halls
+                const halls = document.querySelectorAll('.hall');
+                for (let i = 0; i < halls.length; i++) {
+                    halls[i].style.display = 'none';
+                }
+                //Show the back button
+                const backButton = document.querySelector('.back-button');
+                backButton.style.display = 'block';
+                //Add event listener to the back button
+                backButton.addEventListener('click', function (event) {
+                    //Show all halls
+                    const halls = document.querySelectorAll('.hall');
+                    for (let i = 0; i < halls.length; i++) {
+                        halls[i].style.display = 'block';
+                    }
+                    //Hide the back button
+                    backButton.style.display = 'none';
+                    //Show the Kinosaal-Builder-Button
+                    document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+                    //Show the screen-builder button
+                    document.querySelector('.Screening-Builder-Button').style.display = 'block';
+                    //Remove the Kinosaal-Builder
+                    document.getElementById('Kinosaal-Builder').style.display = 'none';
+                    //Remove the screening details
+                    document.getElementById('screening-details').style.display = 'none';
+                    //Remove the seats
+                    document.getElementById('seats').style.display = 'none';
+                    //Remove the finalize button
+                    document.querySelector('.finalize-kinosaal-button').remove();
+                    //Remove the row controls
+                    document.querySelector('.row-controls').remove();
+                })
+            });
+            hallElement.appendChild(editHallButton);
+        }
+    }
+    //Create a button to add a new hall
+    const addHallButton = document.createElement('button');
+    addHallButton.className = 'add-hall-button';
+    addHallButton.textContent = 'Add Cinema Hall';
+    addHallButton.addEventListener('click', async function (event) {
+        //Add a new hall
+        const newHall = await hallAPIFunctions.createHall({configured: false}, []);
+        //Add the hall to the list of halls
+        const hallElement = document.createElement('div');
+        hallElement.className = 'hall';
+        hallElement.textContent = `Hall ${newHall.id}`;
+        hallsContainer.appendChild(hallElement);
+        const deleteHallButton = document.createElement('button');
+        deleteHallButton.className = 'delete-hall-button';
+        deleteHallButton.textContent = 'Delete Cinema Hall';
+        deleteHallButton.addEventListener('click', async function (event) {
+            //Delete the hall
+            await hallAPIFunctions.deleteHallById(newHall.id);
+            //Remove the hall from the list of halls
+            hallElement.remove();
+        });
+        hallElement.appendChild(deleteHallButton);
+        const editHallButton = document.createElement('button');
+        editHallButton.className = 'edit-hall-button';
+        editHallButton.textContent = 'Edit Cinema Hall';
+        editHallButton.addEventListener('click', async function (event) {
+            //Edit the hall
+            await editCinemaHall(newHall.id);
+            //Hide the Kinosaal-Builder-Button
+            document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
+            //Hide the screen-builder button
+            document.querySelector('.Screening-Builder-Button').style.display = 'none';
+            //Hide all other halls
+            const halls = document.querySelectorAll('.hall');
+            for (let i = 0; i < halls.length; i++) {
+                halls[i].style.display = 'none';
+            }
+            //Show the back button
+            const backButton = document.querySelector('.back-button');
+            backButton.style.display = 'block';
+            //Add event listener to the back button
+            backButton.addEventListener('click', function (event) {
+                //Show all halls
+                const halls = document.querySelectorAll('.hall');
+                for (let i = 0; i < halls.length; i++) {
+                    halls[i].style.display = 'block';
+                }
+                //Hide the back button
+                backButton.style.display = 'none';
+                //Show the Kinosaal-Builder-Button
+                document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
+                //Show the screen-builder button
+                document.querySelector('.Screening-Builder-Button').style.display = 'block';
+                //Remove the Kinosaal-Builder
+                document.getElementById('Kinosaal-Builder').style.display = 'none';
+                //Remove the screening details
+                document.getElementById('screening-details').style.display = 'none';
+                //Remove the seats
+                document.getElementById('seats').style.display = 'none';
+                //Remove the finalize button
+                document.querySelector('.finalize-kinosaal-button').remove();
+                //Remove the row controls
+                document.querySelector('.row-controls').remove();
+            })
+        });
+        hallsContainer.remove();
+        await hallListBuilder();
+    })
+    hallsContainer.appendChild(addHallButton);
+}
 // User login
 document.querySelector('#login-form').addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -1306,91 +1447,7 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         document.querySelector('.Screening-Builder-Button').style.display = 'block';
         //Click back button
         document.querySelector('.back-button').click();
-        //Create a list of all halls
-        const halls = await hallAPIFunctions.getAllHalls();
-        console.log(halls);
-        const hallsContainer = document.createElement('div');
-        hallsContainer.className = 'halls';
-        document.body.appendChild(hallsContainer);
-        for (let i = 0; i < halls.length; i++) {
-            const hall = await hallAPIFunctions.getHallById(halls[i]);
-            console.log(hall);
-            const hallElement = document.createElement('div');
-            hallElement.className = 'hall';
-            hallElement.textContent = `Hall ${hall.id}`;
-            hallsContainer.appendChild(hallElement);
-            // //Create a button to finish the hall
-            // const finishHallButton = document.createElement('button');
-            // finishHallButton.className = 'finish-hall-button';
-            // finishHallButton.textContent = 'Finish Cinema Hall';
-            // finishHallButton.addEventListener('click', async function (event) {
-            //     //Finish the hall
-            //     await hallAPIFunctions.finishHall(hall.id);
-            //     //Remove the hall from the list of halls
-            //     hallElement.remove();
-            // });
-            // hallElement.appendChild(finishHallButton);
-            //Create a button to delete the hall
-            const deleteHallButton = document.createElement('button');
-            deleteHallButton.className = 'delete-hall-button';
-            deleteHallButton.textContent = 'Delete Cinema Hall';
-            deleteHallButton.addEventListener('click', async function (event) {
-                //Delete the hall
-                await hallAPIFunctions.deleteHallById(hall.id);
-                //Remove the hall from the list of halls
-                hallElement.remove();
-            });
-            hallElement.appendChild(deleteHallButton);
-            if(!hall.configured) {
-                const editHallButton = document.createElement('button');
-                editHallButton.className = 'edit-hall-button';
-                editHallButton.textContent = 'Edit Cinema Hall';
-                editHallButton.addEventListener('click', async function (event) {
-                    //Edit the hall
-
-                    await editCinemaHall(hall.id);
-                    //Hide the Kinosaal-Builder-Button
-                    document.querySelector('.Kinosaal-Builder-Button').style.display = 'none';
-                    //Hide the screen-builder button
-                    document.querySelector('.Screening-Builder-Button').style.display = 'none';
-                    //Hide all other halls
-                    const halls = document.querySelectorAll('.hall');
-                    for (let i = 0; i < halls.length; i++) {
-                            halls[i].style.display = 'none';
-                    }
-                    //Show the back button
-                    const backButton = document.querySelector('.back-button');
-                    backButton.style.display = 'block';
-                    //Add event listener to the back button
-                    backButton.addEventListener('click', function (event) {
-                        //Show all halls
-                        const halls = document.querySelectorAll('.hall');
-                        for (let i = 0; i < halls.length; i++) {
-                            halls[i].style.display = 'block';
-                        }
-                        //Hide the back button
-                        backButton.style.display = 'none';
-                        //Show the Kinosaal-Builder-Button
-                        document.querySelector('.Kinosaal-Builder-Button').style.display = 'block';
-                        //Show the screen-builder button
-                        document.querySelector('.Screening-Builder-Button').style.display = 'block';
-                        //Remove the Kinosaal-Builder
-                        document.getElementById('Kinosaal-Builder').style.display = 'none';
-                        //Remove the screening details
-                        document.getElementById('screening-details').style.display = 'none';
-                        //Remove the seats
-                        document.getElementById('seats').style.display = 'none';
-                        //Remove the finalize button
-                        document.querySelector('.finalize-kinosaal-button').remove();
-                        //Remove the row controls
-                        document.querySelector('.row-controls').remove();
-                    })
-                });
-                hallElement.appendChild(editHallButton);
-            }
-        }
-        //append to the body
-        document.body.appendChild(hallsContainer);
+        await hallListBuilder();
     }
 
     // Send a POST request to the server for login

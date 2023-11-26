@@ -32,7 +32,7 @@ async function createHall (hall) {
         },
         body: JSON.stringify(hall),
     });
-    const data = await response.json();
+    const data = await response.text()
     return data;
 }
 
@@ -40,7 +40,7 @@ async function deleteHallById (hallId) {
     const response = await fetch('http://localhost:8080/hall/' + hallId, {
         method: 'DELETE',
     });
-    const data = await response.json();
+    const data = await response.text()
     return data;
 }
 
