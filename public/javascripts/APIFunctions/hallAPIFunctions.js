@@ -104,7 +104,7 @@ async function finishHall(hallId) {
 }
 
 // JavaScript function to add rows to a hall
-async function addRowsToHall(hallId, rows) {
+async function addRowsToHall(hallId, rows) {1
     try {
         const response = await fetch(`/hall/${hallId}/rows`, {
             method: 'POST',
@@ -133,9 +133,20 @@ async function updateRowInHall(rowId, row) {
             },
             body: JSON.stringify(row),
         });
-        return response;
+        return await response;
     } catch (error) {
         console.error(`Error updating row with ID ${rowId}:`, error);
+    }
+}
+async function deleteRow(hallId, rowId) {
+    try {
+        const response = await fetch(`/hall/${hallId}/rows/${rowId}`, {
+            method: 'DELETE',
+        });
+        const result = await response
+        return result;
+    } catch (error) {
+        console.error(`Error deleting row with ID ${rowId}:`, error);
     }
 }
 async function getAllHalls() {
@@ -158,5 +169,6 @@ export const hallAPIFunctions = {
     addRowsToHall,
     updateRowInHall,
     getAllHalls,
-    deleteSeatingCategoryById
+    deleteSeatingCategoryById,
+    deleteRow
 }

@@ -128,11 +128,18 @@ app.get('/hall/:hallId/finish', function(req, res, next) {
 
 // Add endpoint for adding rows to a hall
 app.post('/hall/:hallId/rows', function(req, res, next) {
-    hallAPICalls.addRowsToHall(req.params.hallId, req.body.rows).then(data => {
+    console.log(req.body);
+    console.log(req.params.hallId);
+    hallAPICalls.addRowsToHall(req.params.hallId, req.body).then(data => {
         res.send(data);
     });
 });
-
+app.delete('/hall/:hallId/rows/:rowId', function(req, res, next) {
+    hallAPICalls.deleteRowFromHall(req.params.hallId, req.params.rowId).then(data => {
+        console.log(data);
+        res.send(data);
+    });
+})
 // Add endpoint for updating a row in a hall
 app.patch('/hall/rows/:rowId', function(req, res, next) {
     hallAPICalls.updateRowInHall( req.params.rowId, req.body).then(data => {

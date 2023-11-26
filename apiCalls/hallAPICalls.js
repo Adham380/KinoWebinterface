@@ -1,3 +1,5 @@
+
+
 /**
  *    fetchHall,
  *     createSeatingCategory,
@@ -74,7 +76,6 @@ async function deleteSeatingCategory (seatingCategoryId) {
 async function fetchSeatingCategories (hallId) {
     const response = await fetch('http://localhost:8080/seatingCategories');
     const data = await response.json();
-    console.log(data);
     return data;
 }
 
@@ -100,10 +101,16 @@ async function updateRowInHall (rowId, row) {
         body: JSON.stringify(row),
     });
     const data = await response.text();
+    return data;
+}
+async function deleteRowFromHall(hallId, rowId) {
+    const response = await fetch('http://localhost:8080/hall/'+ hallId + '/rows/' + rowId, {
+        method: 'DELETE',
+    });
+    const data = await response.text()
     console.log(data);
     return data;
 }
-
 //Export module as an object
 module.exports = {
     finishHall,
@@ -115,5 +122,6 @@ module.exports = {
     updateRowInHall,
     getAllHalls,
     getHallById,
-    deleteSeatingCategory
+    deleteSeatingCategory,
+    deleteRowFromHall
 }

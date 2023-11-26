@@ -21,7 +21,6 @@ async function fetchAllScreenings() {
 
 async function addNewScreening(playsInHallId, film, played) {
     try {
-        console.log(playsInHallId, film, played);
         const response = await fetch('/screening', {
             method: 'POST',
             headers: {
@@ -71,6 +70,7 @@ async function getBookedSeats(screeningId){
     const data = await response.json();
     return data;
 }
+
 
 export const screeningAPIFunctions = {
     getScreeningById,

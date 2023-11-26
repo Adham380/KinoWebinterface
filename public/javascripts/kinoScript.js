@@ -179,6 +179,18 @@ async function rowBuilder(seatRow, seats, i) {
                 // categorySelector.value = category.id;
             })
         }
+        else {
+            hallAPIFunctions.updateRowInHall(seatRow.id, {
+                categoryId: event.target.value,
+                numberOfSeats: seats,
+            }).then((response) => {
+                //If successful, update the seats
+                if (response.status == 200) {
+                    //Update the category of the row
+                    seatRow.category.id = event.target.value;
+                }
+            });
+        }
     })
     //Remove categories
     const removeCategoriesOption = document.createElement('option');
@@ -242,11 +254,11 @@ async function rowBuilder(seatRow, seats, i) {
     rowElement.appendChild(categorySelector);
     // Get the Kinosaal-Builder element
     const kinosaalBuilder = document.getElementById('Kinosaal-Builder');
-    const addRowButton = kinosaalBuilder.querySelector('.add-row-button');
+    const rowControls = kinosaalBuilder.querySelector('.row-controls');
 
     // Insert the new row before the addRowButton
-    if (addRowButton) {
-        kinosaalBuilder.insertBefore(rowElement, addRowButton);
+    if (rowControls) {
+        kinosaalBuilder.insertBefore(rowElement, rowControls);
     } else {
         kinosaalBuilder.appendChild(rowElement);
     }
@@ -860,8 +872,67 @@ async function editCinemaHall(screeningId){
     //Populate the Kinosaal-Builder
     //Remove all innerHTML from the
     for(let i = 0; i < hall.seatRows.length; i++){
-        await rowBuilder(hall.seatRows[i], hall.seatRows[i].seats.length, i);
+        await rowBuilder(hall.seatRows[i], hall.seatRows[i].seats.length , i);
     }
+    //addRowButton
+    const addRowButton = document.createElement('button');
+    addRowButton.className = 'add-row-button';
+    // addRowButton.dataset.id = rows;
+    addRowButton.textContent = `Add row`;
+    document.getElementById('Kinosaal-Builder').appendChild(addRowButton);
+    addRowButton.addEventListener('click', function (event) {
+        //Add a row to the Kinosaal-Builder
+        const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
+        hallAPIFunctions.addRowsToHall(screeningData.playsInHallId,
+        [ {categoryId: hall.seatRows[hall.seatRows.length - 1].category.id,
+            numberOfSeats: 10}
+            ]
+        ).then((response) => {
+            console.log(response);
+            if(response.seatRows != null && response.seatRows.length > hall.seatRows.length - 1){
+                //Get the hall
+                hallAPIFunctions.getHallById(screeningData.playsInHallId).then(hall => {
+                    //Get the last row
+                    const row = hall.seatRows[hall.seatRows.length - 1];
+                    console.log(row);
+                    //Create the row
+                    console.log(hall.seatRows.length - 1);
+                    rowBuilder(row, row.seats.length, hall.seatRows.length - 1);
+                })
+            }
+        });
+
+    });
+    const removeRowButton = document.createElement('button');
+    removeRowButton.className = 'remove-row-button';
+    // removeRowButton.dataset.id = rows;
+    removeRowButton.textContent = `Remove row`;
+    removeRowButton.addEventListener('click', async function (event) {
+        const currentHall = await hallAPIFunctions.getHallById(screeningData.playsInHallId);
+        console.log(currentHall.seatRows[currentHall.seatRows.length - 1].id);
+        console.log(currentHall.id);
+        hallAPIFunctions.deleteRow(currentHall.id, currentHall.seatRows[currentHall.seatRows.length - 1].id).then((response) => {
+            if (response.status == 200) {
+                //Remove a row from the Kinosaal-Builder
+                const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
+                //If there is only one row, do not remove it
+                if (rows == 1) {
+                    return;
+                }
+                //Get all rows
+                const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
+                //Remove the last row
+                rowsElement[rowsElement.length - 1].remove();
+            }
+        });
+    });
+    const rowControls = document.createElement('div');
+    rowControls.className = 'row-controls';
+    rowControls.appendChild(addRowButton);
+    rowControls.appendChild(removeRowButton);
+    rowControls.style.display = 'flex';
+    rowControls.style.flexDirection = 'row';
+    document.getElementById('Kinosaal-Builder').appendChild(rowControls);
 }
 
 // Function to update screenings
