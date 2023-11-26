@@ -55,10 +55,10 @@ async function updateScreening(screeningId, film, playsInHallId, played) {
 
 async function calculateEarningsFromScreening(screeningId) {
     try {
+        console.log("Calculating earnings for screening with ID " + screeningId);
         const response = await fetch(`/screening/${screeningId}/earnings`);
         const earnings = await response.json();
-        console.log(earnings);
-        return earnings;
+        return earnings.value;
     } catch (error) {
         console.error(`Error calculating earnings for screening with ID ${screeningId}:`, error);
     }
@@ -71,6 +71,7 @@ async function getReservedSeats(screeningId){
 async function getBookedSeats(screeningId){
     const response = await fetch('/screening/' + screeningId + '/bookedSeats');
     const data = await response.json();
+    console.log(data);
     return data;
 }
 

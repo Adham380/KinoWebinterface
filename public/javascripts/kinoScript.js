@@ -628,13 +628,14 @@ async function createScreeningForm(screeningData) {
         const film = document.getElementsByName('film')[0].value;
         const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
         const played = document.getElementsByName('played')[0].value;
-        //Create the screening object
-        const screening = {
-            id: dummyScreenings.length + 1,
-            film: film,
-            playsInHallId: playsInHallId,
-            played: played
-        };
+        screeningAPIFunctions.addNewScreening(film, parseInt(playsInHallId), played).then(() => {
+            //Click back button
+            document.querySelector('.back-button').click();
+            //Remove the form
+            document.querySelector('.Screening-Builder-Form').remove();
+            //refresh the screenings
+            updateScreenings();
+        })
 
     })
 }
@@ -788,8 +789,15 @@ async function updateScreeningDetails(screeningId) {
         screeningDetailsElement.style.display = 'block';
         screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details `;
         screeningDetailsElement.dataset.id = screeningDetails.id;
+        if(isAdmin){
+            //Show earnings
+            const earnings = await screeningAPIFunctions.calculateEarningsFromScreening(screeningId);
+            const earningsElement = document.createElement('div');
+            earningsElement.className = 'earnings';
+            earningsElement.textContent = `Earnings: ${earnings}€`;
+            screeningDetailsElement.appendChild(earningsElement);
 
-        // Add more details as needed
+        }
     } catch (error) {
         console.error('Error fetching screening details:', error);
     }
@@ -808,17 +816,31 @@ async function startSeatChecking(screeningId) {
             seatsElement.style.flexWrap = 'wrap';
             const screening = await screeningAPIFunctions.getScreeningById(screeningId)
             const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
-            //These are full reservation objects.
-            const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id)
-            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
-            //screeningReservations and screeningBookings are arrays of seatIds with no keys
             const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
             console.log(screeningId)
-            const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId)
-            console.log("myReservations: ", myReservations)
-            console.log("myBookings: ", myBookings)
-            console.log("screeningReservations: ", screeningReservations)
-            console.log("screeningBookings: ", screeningBookings)
+            const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
+            console.log(screeningBookings)
+            const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+            let myReservationsForScreening = [];
+            //Check if I have a reservation that has a seat equal to the one in screeningReservations
+            for(let i = 0; i < screeningReservations.length; i++){
+                //Check if I have a reservation for this seat
+                if(myReservations.find(reservation => reservation.seatId == screeningReservations[i])){
+                    myReservationsForScreening.push(screeningReservations[i]);
+                }
+            }
+            console.log("These are all my reservations: " + myReservationsForScreening);
+            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+            let myBookingsForScreening = [];
+            console.log("These are all my bookings: " + myBookings);
+            console.log(myBookingsForScreening[0]);
+            //Check if I have a booking that has a seat equal to the one in screeningBookings
+            for(let i = 0; i < screeningBookings.length; i++){
+                //Check if I have a booking for this seat
+                if(myBookings.find(booking => booking == screeningBookings[i].seatId)){
+                    myBookingsForScreening.push(screeningBookings[i].seatId);
+                }
+            }
             // Assuming a max number of seats per row for layout purposes
             //check every object in hall.seatRows and check which is the longest
             let maxSeatsPerRow = 0;
@@ -855,7 +877,7 @@ async function startSeatChecking(screeningId) {
                     //Check if it reserved by me. Do so by checking the movie the
                     //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
                     let isReservedByMe = false;
-                    if (myReservations.find(reservation => reservation.seatId == seat.id)) {
+                    if (myReservationsForScreening.find(reservation => reservation == seat.id)) {
                         isReservedByMe = true;
                     }
                     console.log("This is reserved by me?: " + isReservedByMe + " for seat: " + seat.id);
@@ -877,7 +899,7 @@ async function startSeatChecking(screeningId) {
                         seatIcon.classList.add('reserved');
                         console.log('reserved');
                     }
-                    if (myBookings.find(booking => booking.seatId == seat.id)) {
+                    if (myBookingsForScreening.find(booking => booking == seat.id)) {
                         // alert('This seat is already booked by you')
                         seatIcon.style.color = 'blue';
                         seatIcon.classList.add('booked');

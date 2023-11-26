@@ -19,13 +19,8 @@ async function getReservedSeats(screeningId){
 async function getBookedSeats(screeningId){
     const response = await fetch('http://localhost:8080/screening/' + screeningId + '/bookedSeats');
     const data = await response.json();
-    //It's a list of seatIds that are reserved
-    const bookedSeats = [];
     console.log(data);
-    data.forEach(seat => {
-        bookedSeats.push(seat.seatId);
-    })
-    return bookedSeats;
+    return data;
 }
 async function getScreeningById(screeningId){
     const response = await fetch('http://localhost:8080/screening/' + screeningId);
@@ -35,9 +30,9 @@ async function getScreeningById(screeningId){
 }
 //get earnings
 async function getEarnings(screeningId) {
+    console.log("Calculating earnings for screening with ID " + screeningId);
     const response = await fetch('http://localhost:8080/screening/' + screeningId + '/earnings');
     const data = await response.json();
-    console.log(data);
     return data;
 
 }
