@@ -51,6 +51,8 @@ export async function getReservationsForCustomer(customerId) {
 // JavaScript function to delete a reservation for a customer
 export async function deleteReservationForCustomer(customerId, reservationId) {
     try {
+        customerId = parseInt(customerId);
+        reservationId = parseInt(reservationId);
         const response = await fetch(`/customer/${customerId}/reservations/${reservationId}`, {
             method: 'DELETE',
         });

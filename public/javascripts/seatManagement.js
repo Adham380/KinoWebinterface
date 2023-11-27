@@ -12,8 +12,10 @@ function addSeatToSelectedSeats(seatId, screeningId){
     selectedSeatsForFilmScreening.set(key, seatId);
 }
 function removeSeatFromSelectedSeats(seatId, screeningId){
-    const key = screeningId + seatId;
+    const key = screeningId.toString() + seatId.toString()
+    console.log(key);
     selectedSeatsForFilmScreening.delete(key);
+    console.log(selectedSeatsForFilmScreening);
 
 }
 console.log(me);
@@ -58,6 +60,8 @@ async function startSeatChecking(screeningId) {
                     maxSeatsPerRow = row.seats.length;
                 }
             })
+            console.log(myReservationsForScreening);
+            console.log(myBookingsForScreening);
             //This should be calculated based on the number of seats in the screening and vw
             seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
             seatsElement.innerHTML = ''; // Clear current seat listings
@@ -94,8 +98,8 @@ async function startSeatChecking(screeningId) {
                         seatIcon.classList.add('booked');
                     } else
                     if (isReservedByMe) {
+                        console.log('This seat is already reserved by you')
                         // alert('This seat is already reserved by you')
-                        seatIcon.style.color = 'green';
                         seatIcon.classList.add('reservedByMe');
                     } else
                     if (screeningBookings.find(booking => booking == seat.id)) {
@@ -110,6 +114,8 @@ async function startSeatChecking(screeningId) {
                     } else
 
                     if(selectedSeatsForFilmScreening.has(screeningId + seat.id)){
+                        console.log('This seat is already selected by you')
+                        console.log(screeningId + seat.id);
                         seatIcon.classList.add('selected');
                     //     Remove the other classes if they exist
                         seatIcon.classList.remove('booked');
@@ -201,7 +207,6 @@ async function attemptSeatReservation(seatId, seatElement, screeningId) {
         // Reserve the seat
         try {
             customerAPIFunctions.addReservationForCustomer(me.id, screeningId, seatId, ).then(() => {
-                seatElement.style.color = 'green';
                 seatElement.classList.add('reservedByMe');
             }).then(() => {
                 updatePrice(screeningId);

@@ -252,3 +252,6 @@ display: flex;
 .selected{
     color: orange;
 }
+.reservedByMe {
+    color: green;
+}

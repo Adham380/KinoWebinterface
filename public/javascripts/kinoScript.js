@@ -458,6 +458,8 @@ async function fetchData() {
                         const response = await customerAPIFunctions.addNewBookingToCustomer(userId.id, seat.dataset.id, screeningId);
                         if(response != null){
                             //If successful, update the seat
+                            console.log(seat.dataset.id)
+                            console.log(screeningId)
                             seatManagement.removeSeatFromSelectedSeats(parseInt(seat.dataset.id), parseInt(screeningId));
                             seat.classList.remove('selected');
                             seat.classList.add('booked');
@@ -484,9 +486,39 @@ async function fetchData() {
                     selectedSeats.forEach(async seat => {
                       await seatManagement.attemptSeatReservation(seat.dataset.id, seat, screeningId);
                             //If successful, update the seat
-                            seatManagement.removeSeatFromSelectedSeats(parseInt(seat.dataset.id), parseInt(screeningId));
+                            seatManagement.removeSeatFromSelectedSeats(seat.dataset.id, screeningId);
                             seat.classList.remove('selected');
                     })
+                });
+                const unReserveReservedSeatsButton = document.createElement('button');
+                unReserveReservedSeatsButton.className = 'unreserve-reserved-seats-button';
+                unReserveReservedSeatsButton.textContent = 'Unreserve reserved seats';
+                document.getElementById('screening-details').appendChild(unReserveReservedSeatsButton);
+                unReserveReservedSeatsButton.addEventListener('click',async (event) => {
+                    //Get the selected seats
+                    let reservedSeats = document.querySelectorAll('.reservedByMe');
+                    //filter out the seats that are not reserved and not booked
+                    reservedSeats.forEach((seat) => {
+                        if (!seat.classList.contains('reserved') || !seat.classList.contains('booked')) {
+                            seat.classList.remove('selected');
+                        }
+                    })
+                    const userId = await userAuth.getUser();
+
+                    //get the reservations
+                    const reservations = await customerAPIFunctions.getReservationsForCustomer(userId.id);
+                    const screeningId = document.querySelector('#screening-details').dataset.id;
+                    //For each selected seat, attempt to reserve it
+                    for (const seat of reservedSeats) {
+
+                        //Get the reservation id from reservations.seatId
+                        const reservationId = reservations.find(reservation => reservation.seatId == seat.dataset.id).id;
+                        await customerAPIFunctions.deleteReservationForCustomer(userId.id, reservationId);
+                        //If successful, update the seat
+                        seatManagement.removeSeatFromSelectedSeats(seat.dataset.id, screeningId);
+                        seat.classList.remove('selected');
+                        seat.classList.remove('reservedByMe');
+                    }
                 });
             }
             // Show the back button
