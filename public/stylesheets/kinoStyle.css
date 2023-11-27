@@ -135,6 +135,8 @@ a {
     padding: 2vw;
     align-items: center;
     justify-content: center;
+    background-position-y: -5vh;
+
 }
 
 .screening:hover {
@@ -147,14 +149,14 @@ a {
 
     }
     100% {
-        height: 50vh;
+        height: 500px;
         background-position-y: 0vh;
     }
 }
 @keyframes scaleDown {
     0% {
-        height: 50vh;
-        background-position-y: 0vh;
+        height: 500px;
+        background-position-y: -5vh;
     }
     100% {
         height: 20vh;

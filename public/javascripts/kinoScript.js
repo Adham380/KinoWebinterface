@@ -376,6 +376,11 @@ async function fetchData() {
                 event.target.style.animationDuration = '1s'
                 event.target.style.animationFillMode = 'forwards'
             } else {
+                //Remove the scaleDown animation
+                event.target.style.animationName = ''
+                event.target.style.animationDuration = ''
+                event.target.style.animationFillMode = ''
+
                 // Make screening clicked active
                 event.target.classList.add('largeScreening');
 
@@ -384,7 +389,13 @@ async function fetchData() {
             const screenings = document.querySelectorAll('.screening');
             screenings.forEach(screening => {
                 if (screening.dataset.id != id) {
-                    screening.classList.remove('largeScreening');
+                    if(screening.classList.contains('largeScreening')){
+                        screening.classList.remove('largeScreening');
+                        screening.style.animationName = 'scaleDown'
+                        screening.style.animationDuration = '1s'
+                        screening.style.animationFillMode = 'forwards'
+
+                    }
                 }
             });
             //hide all other screenings
