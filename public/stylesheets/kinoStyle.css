@@ -1,9 +1,9 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  padding: 1vh 1vw 1vw;
+  font: 2vh "Lucida Grande", Helvetica, Arial, sans-serif;
 /*    Very dark gray*/
     background-color: #222222;
-    color: #fff;
+    color: white
 }
 
 a {
@@ -14,11 +14,13 @@ a {
     position: absolute;
     top: 0;
     right: 0;
-    margin: 1vh;
+    margin: 1.5vh 1vh 1vh;
     padding: 1vh;
-    border: none;
     background-color: transparent;
-    opacity: 0.6;
+    opacity: 1;
+    color: white;
+    border: 0.1vh white solid;
+    border-radius: 0.1vw;
   display: none;
 }
 
@@ -79,7 +81,6 @@ a {
     border-radius: 1vw;
     /*Indent shadow*/
     box-shadow: 0 0.1vw 0.5vw 0 rgba(0, 0, 0, 0.1);
-    margin-right: 5vw;
     color: #fff;
 }
 /* Style the scrollbar for Chrome, Edge, and Safari */
@@ -106,18 +107,38 @@ a {
     scrollbar-width: thin;
     scrollbar-color: #888 #f1f1f1; /* thumb and track color */
 }
+#seats{
+    padding: 1vw;
+}
+.category-prices-and-seat-color-coding-container{
+    display: flex;
+    gap: 0.5vw;
+    border: 0.1vw dotted white;
+
+}
+.category-prices{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 0.1vw dotted white;
+}
+.seat-color-coding{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .screening {
     background-color: #fff; /* Card background color */
     box-shadow: 0 0.5vw 1vw 0 rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease-in-out;
-    width: 40vw;
+    width: 38vw;
     margin-bottom: 2vw;
     text-align: center;
     border-radius: 1vw;
     overflow: hidden;
     cursor: pointer;
     position: relative;
-    font-size: 4vh;
+    font-size: 6vh;
     font-weight: bold;
     /*Font needs to be readable*/
     color: #000;
@@ -190,6 +211,12 @@ a {
     left: 45vw;
     position: absolute;
 }
+#hallsEdit{
+    display: block;
+    top: 2vh;
+    left: 55vw;
+    position: absolute;
+}
 .halls{
 display: flex;
     flex-direction: column;
@@ -198,6 +225,13 @@ display: flex;
     margin-top: 2vh;
 /*    Make into cards*/
 
+}
+#screening-details{
+    row-gap: 1vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1vw;
+    border-right: 0.1vw solid white;
 }
 .hall{
     display: flex;
@@ -227,7 +261,10 @@ display: flex;
     border-radius: 1vw;
     padding: 1vw;
 }
-
+.seatsElement{
+    padding: 1vw;
+    max-width: 80vw;
+}
 /* Adjustments for responsive design */
 @media (max-width: 50em) {
     .screening {
@@ -240,6 +277,7 @@ display: flex;
 #hall-container{
     display: flex;
     flex-direction: column;
+    width: min-content;
 }
 .fa-chair{
     margin: 0.2vw;

@@ -353,7 +353,15 @@ document.addEventListener('click', async function(event) {
         await createScreeningForm();
     }
 })
-
+document.addEventListener('click', async function(event) {
+if(event.target.matches('#hallsEdit') && isAdmin){
+//     Scroll down to the bottom of the page smoothly
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth',
+    });
+}
+})
 //This gets film screenings.
 async function fetchData() {
     // Fetch the list of all movie screenings when the page loads
@@ -397,10 +405,6 @@ async function fetchData() {
             // screeningsElement.style.display = 'none';
             //hide the Screening-Builder
             document.querySelector('.Screening-Builder-Button').style.display = 'none';
-            const hallsList = document.querySelector('.halls');
-            if(hallsList){
-                document.querySelector('.halls').style.display = 'none';
-            }
             //hide the list of Halls
 
             //show edit button if the user is an admin
@@ -528,7 +532,7 @@ async function fetchData() {
             document.querySelector('.back-button').addEventListener('click', function() {
                 const screeningDetailsElement = document.getElementById('screening-details');
                 screeningDetailsElement.style.display = 'none';
-                screeningsElement.style.display = 'block';
+                screeningsElement.style.display = 'flex';
                 // Reset the seats
                 //Stop checking seats
                 seatManagement.stopSeatChecking();
@@ -556,7 +560,7 @@ async function fetchData() {
                     document.querySelector('.Screening-Builder-Button').style.display = 'block';
                     const hallsList = document.querySelector('.halls');
                     if(hallsList !== null && hallsList.style.display == 'none'){
-                        document.querySelector('.halls').style.display = 'block';
+                        document.querySelector('.halls').style.display = 'flex';
                     }
                 }
             });
@@ -861,7 +865,7 @@ async function editCinemaHall(hallId){
                 //Hide the back button
                 document.querySelector('.back-button').style.display = 'none';
                 //Show the list of Halls
-                document.querySelector('.halls').style.display = 'block';
+                document.querySelector('.halls').style.display = 'flex';
                 //Show the screenings
                 document.getElementById('screenings').style.display = 'block';
                 document.querySelector('.Screening-Builder-Button').style.display = 'block';
@@ -906,7 +910,7 @@ async function updateScreenings() {
             const screeningElement = document.createElement('div');
             screeningElement.className = 'screening';
             screeningElement.dataset.id = screening.id;
-            screeningElement.textContent = `${screening.film} - Click to view details`;
+            screeningElement.textContent = `${screening.film}`;
             const moviePoster = await moviePosters.getMoviePoster(screening.film);
             if (moviePoster) {
                 screeningElement.style.backgroundImage = `url(${moviePoster})`;
@@ -931,8 +935,9 @@ async function updateScreeningDetails(screeningId) {
             return screenings.find(screening => screening.id == screeningId);
         })
         const screeningDetailsElement = document.getElementById('screening-details');
-        screeningDetailsElement.style.display = 'block';
+        screeningDetailsElement.style.display = 'flex';
         screeningDetailsElement.innerHTML = `<strong>${screeningDetails.film}</strong> - Screening Details `;
+        screeningDetailsElement.style.textAlign = 'center';
         screeningDetailsElement.dataset.id = screeningDetails.id;
         if(isAdmin){
             //Show earnings
@@ -1111,6 +1116,8 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         document.querySelector('.Screening-Builder-Button').style.display = 'block';
         //Click back button
         document.querySelector('.back-button').click();
+        //Show hallsEdit button
+        document.querySelector('#hallsEdit').style.display = 'block';
         await hallListBuilder();
         await updateScreenings();
     }
