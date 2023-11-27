@@ -1,17 +1,26 @@
 //post customer
-async function postCustomer(customerName) {
+async function postCustomer(name) {
     try {
         const response = await fetch('http://localhost:8080/customer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ customerName }),
+            body: JSON.stringify({ name }),
         });
         const newCustomer = await response.json();
         return newCustomer;
     } catch (error) {
         console.error('Error creating customer:', error);
+    }
+}
+async function getCustomerById(customerId) {
+    try {
+        const response = await fetch(`http://localhost:8080/customer/${customerId}`);
+        const customer = await response.json();
+        return customer;
+    } catch (error) {
+        console.error(`Error fetching customer with ID ${customerId}:`, error);
     }
 }
 //get reservations
@@ -96,6 +105,7 @@ async function transformReservationIntoBooking(reservationId) {
 }
 module.exports = {
     postCustomer,
+    getCustomerById,
     getReservationsForCustomer,
     getBookingsForCustomer,
     addReservationForCustomer,

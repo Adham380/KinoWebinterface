@@ -12,7 +12,16 @@ export async function createCustomer(name) {
         console.error('Error creating customer:', error);
     }
 }
+export async function getCustomerById(customerId) {
+    try {
+        const response = await fetch(`/customer/${customerId}`);
+        const customer = await response.json();
+        return customer;
+    } catch (error) {
+        console.error(`Error fetching customer with ID ${customerId}:`, error);
+    }
 
+}
 // JavaScript function to add a reservation for a customer
 export async function addReservationForCustomer(customerId, filmScreeningId, seatId) {
     try {
@@ -106,6 +115,7 @@ export async function deleteBookingForCustomer(customerId, bookingId) {
 
 export const customerAPIFunctions = {
     createCustomer,
+    getCustomerById,
     addReservationForCustomer,
     getReservationsForCustomer,
     deleteReservationForCustomer,

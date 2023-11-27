@@ -1,13 +1,12 @@
 import {screeningAPIFunctions} from './APIFunctions/screeningAPIFunctions.js';
 import {hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
 import {customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
+import {seatManagement} from "./seatManagement.js";
+import {userAuth} from "./userAuth.js";
 
 let isAdmin = false;
 //TODO implement proper customer login when all else is done
-let me = {
-    id: 59,
-    name: 'Bobbie',
-}
+
 
 async function rowBuilder(seatRow, seats, i) {
     console.log(seatRow);
@@ -350,179 +349,6 @@ document.addEventListener('click', async function(event) {
     }
 })
 
-const seatsReservedByMe = [
-    {
-        seatId: 1,
-        screeningId: 1,
-    },
-    {
-        seatId: 2,
-        screeningId: 1,
-    }
-];
-const seatsBookedByMe = [
-    {
-        seatId: 3,
-        screeningId: 1,
-    },
-    {
-        seatId: 4,
-        screeningId: 1,
-    }
-];
-const dummySeatsForMovieOne = [
-    {
-        id: 1,
-        reservierungs_stat: true,
-        reihe: 1,
-        pos: 1,
-        buchung_stat: false
-    },
-    {
-        id: 2,
-        reservierungs_stat: false,
-        reihe: 1,
-        pos: 2,
-        buchung_stat: false
-    }
-];
-
-//Filmauffuehrungen
-const dummySeatsForMovieTwo = [];
-let dummySeatsGenerator = (movieId) => {
-    let dummySeats = [];
-    for(let i = 1; i < 101; i++){
-        dummySeats.push({
-            id: i,
-            //random chance of seat being reserved
-            reservierungs_stat: Math.random() > 0.5,
-            reihe: Math.floor(i / 10) + 1,
-            pos: i % 10 + 1,
-            //random chance of seat being booked
-            buchung_stat: Math.random() > 0.5,
-        });
-    }
-    return dummySeats;
-}
-/*
-{ So sieht ein Kinosaal aus
-  "id": 0,
-  "fertig_konfiguriert": true,
-  "reihen": [
-    {
-      "id": 0,
-      "seats": [
-        {
-          "position": 0,
-          "reserviert": true,
-          "gebucht": true
-        }
-      ],
-      "category": "Parkett"
-    }
-  ]
-}
- */
-const Kinosaale = [
-    {
-        "id": 1,
-        "fertig_konfiguriert": true,
-        "reihen": [
-            {
-                "id": 0,
-                "seats": [
-                    {
-                        "id": 0,
-                        "position": 0,
-                        "reserviert": true,
-                        "gebucht": true
-                    }
-                ],
-                "category": "Parkett"
-            }
-        ]
-    },
-    {
-        id: 2,
-        fertig_konfiguriert: true,
-        reihen: [
-            {
-                id: 1,
-                seats: dummySeatsForMovieTwo,
-                category: 'Parkett'
-            }
-        ]
-    }
-]
-const dummySeats = dummySeatsGenerator(1);
-const dummySeats2 = dummySeatsGenerator(2);
-//Attach seats to the Kinosaele
-let dummySeatsGeneratorForCinemaHall = (cinemaHallId) => {
-    let seatIdCounter = 1; // Initialize a counter for seat IDs
-
-    // Determine a random number of rows between 5 and 10
-    const numberOfRows = Math.floor(Math.random() * (10 - 5 + 1)) + 5;
-
-    // Clear existing rows in the cinema hall
-    Kinosaale[cinemaHallId - 1].reihen = [];
-
-    for (let rowId = 1; rowId <= numberOfRows; rowId++) {
-        // Create a new row
-        const newRow = {
-            id: rowId,
-            seats: [],
-            category: 'Randomly Assigned Category' // Assign category as needed
-        };
-
-        // Determine a random number of seats for this row, for example between 10 and 15
-        const numberOfSeats = Math.floor(Math.random() * (15 - 10 + 1)) + 10;
-        for (let seatPos = 1; seatPos <= numberOfSeats; seatPos++) {
-            // Generate a seat and push it to the row's seats
-            //ChanceOfSeatBeingReserved
-
-            if(Math.random() > 0.5){
-
-            }
-            newRow.seats.push({
-                id: seatIdCounter++, // Use and increment the seatIdCounter
-                reservierungs_stat: Math.random() > 0.5,
-                reihe: rowId,
-                pos: seatPos,
-                buchung_stat: Math.random() > 0.5,
-                reserviert: Math.random() > 0.5,
-                gebucht: Math.random() > 0.5,
-            });
-        }
-
-        // Add the new row to the cinema hall
-        Kinosaale[cinemaHallId - 1].reihen.push(newRow);
-    }
-}
-
-
-dummySeatsGeneratorForCinemaHall(1);
-dummySeatsGeneratorForCinemaHall(2);
-const dummyScreenings = [
-    {
-        id: 1,
-        film: 'The Matrix',
-        playsInHallId: 1,
-        played: false,
-    },
-    {
-        id: 2,
-        film: 'The Matrix Reloaded',
-        playsInHallId: 2,
-        played: true,
-    },
-    {
-        id: 3,
-        film: 'The Matrix Revolutions',
-        playsInHallId: 2,
-        played: false,
-    }
-];
-
 //This gets film screenings.
 async function fetchData() {
     // Fetch the list of all movie screenings when the page loads
@@ -538,8 +364,11 @@ async function fetchData() {
             screeningsElement.style.display = 'none';
             //hide the Screening-Builder
             document.querySelector('.Screening-Builder-Button').style.display = 'none';
+            const hallsList = document.querySelector('.halls');
+            if(hallsList){
+                document.querySelector('.halls').style.display = 'none';
+            }
             //hide the list of Halls
-            document.querySelector('.halls').style.display = 'none';
 
             //show edit button if the user is an admin
             if(isAdmin){
@@ -566,15 +395,15 @@ async function fetchData() {
                 }
             }
             // Start checking seat availability for this screening
-            await startSeatChecking(id); // Start checking seat availability for this screening
+            await seatManagement.startSeatChecking(id); // Start checking seat availability for this screening
             // Show a booking button if the user is logged in
-            if (me) {
+            if (await userAuth.getUser()) {
                 //If it does not exist yet, create it
                 const finalizeButton = document.createElement('button');
                 finalizeButton.className = 'finalize-button';
                 finalizeButton.textContent = 'Book reserved seats';
                 document.getElementById('screening-details').appendChild(finalizeButton);
-                finalizeButton.addEventListener('click', finalizeReservation)
+                finalizeButton.addEventListener('click', seatManagement.finalizeReservation);
             }
             // Show the back button
             document.querySelector('.back-button').style.display = 'block';
@@ -586,8 +415,7 @@ async function fetchData() {
                 screeningsElement.style.display = 'block';
                 // Reset the seats
                 //Stop checking seats
-                clearInterval(seatCheckInterval); // Clear the interval to stop seat checking
-                stopSeatChecking();
+                seatManagement.stopSeatChecking();
                 const seatsElement = document.getElementById('seats');
                 seatsElement.style.display = 'none';
                 this.style.display = 'none';
@@ -610,7 +438,11 @@ async function fetchData() {
                         KinosaalBuilder.style.display = 'none';
                     }
                     document.querySelector('.Screening-Builder-Button').style.display = 'block';
-                    document.querySelector('.halls').style.display = 'block';
+                    const hallsList = document.querySelector('.halls');
+                    console.log(hallsList !== null && hallsList.style.display);
+                    if(hallsList.style.display == 'none'){
+                        document.querySelector('.halls').style.display = 'block';
+                    }
                 }
             });
         }
@@ -621,12 +453,12 @@ async function fetchData() {
         if (event.target.matches('.seat')) {
             const id = event.target.dataset.id;
             const screeningId = document.querySelector('#screening-details').dataset.id;
-            await attemptSeatReservation(id, event.target, screeningId);
+            await seatManagement.attemptSeatReservation(id, event.target, screeningId);
         }
     });
 
     // Finalize the reservation
-    document.querySelector('.finalize-button').addEventListener('click', finalizeReservation);
+    document.querySelector('.finalize-button').addEventListener('click', seatManagement.finalizeReservation);
 }
 
 // Call the async function
@@ -799,7 +631,7 @@ async function editCinemaHall(hallId){
     //Show the Kinosaal-Builder
     document.getElementById('Kinosaal-Builder').style.display = 'block';
     //Stop interval for seat checking
-    clearInterval(seatCheckInterval);
+    seatManagement.stopSeatChecking();
     // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
     //Get the Kinosaal
     // const response2 = await fetch(`https://your-spring-boot-app.com/Kinosaale/${screeningData.playsInHallId}`);
@@ -972,272 +804,10 @@ async function updateScreeningDetails(screeningId) {
     }
 }
 
-let seatCheckInterval; // Define a variable to store the interval ID
-
-// Function to start checking seat availability
-async function startSeatChecking(screeningId) {
-
-
-    async function checkSeats() {
-        try {
-            const seatsElement = document.getElementById('seats');
-            seatsElement.classList.add('loading');
-            seatsElement.style.display = 'flex';
-            seatsElement.style.flexWrap = 'wrap';
-            const screening = await screeningAPIFunctions.getScreeningById(screeningId)
-            const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
-            const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
-            console.log(screeningReservations);
-            const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
-            console.log(screeningBookings);
-            const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
-            console.log(myReservations);
-            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
-            console.log(myBookings);
-            let myReservationsForScreening = [];
-            //Check if I have a reservation that has a seat equal to the one in screeningReservations
-            for(let i = 0; i < screeningReservations.length; i++){
-                //Check if I have a reservation for this seat
-                if(myReservations.find(reservation => reservation.seatId == screeningReservations[i])){
-                    myReservationsForScreening.push(screeningReservations[i]);
-                }
-            }
-            let myBookingsForScreening = [];
-            //Check if I have a booking that has a seat equal to the one in screeningBookings
-            for(let i = 0; i < screeningBookings.length; i++){
-                //Check if I have a booking for this seat
-                if(myBookings.find(booking => booking.seatId == screeningBookings[i])){
-                    myBookingsForScreening.push(screeningBookings[i]);
-                }
-            }
-            // Assuming a max number of seats per row for layout purposes
-            //check every object in hall.seatRows and check which is the longest
-            let maxSeatsPerRow = 0;
-            hall.seatRows.forEach(row => {
-                if(row.seats.length > maxSeatsPerRow){
-                    maxSeatsPerRow = row.seats.length;
-                }
-            })
-            //This should be calculated based on the number of seats in the screening and vw
-            seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
-            seatsElement.innerHTML = ''; // Clear current seat listings
-            // Iterate over seats and create icons for each one
-            // Update the function to mark the seat as reserved if it is already taken
-            // For example:
-
-            let rows = hall.seatRows;
-
-            //Iterate over the rows
-            rows.forEach(row => {
-                //Create the row element
-                const rowElement = document.createElement('div');
-                rowElement.className = 'row';
-                rowElement.dataset.id = row.id;
-                // Style as row
-                rowElement.style.display = 'flex';
-                rowElement.style.flexWrap = 'no-wrap';
-                //Iterate over the seats
-                row.seats.forEach(seat => {
-
-                    const seatIcon = document.createElement('i');
-                    seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
-                    seatIcon.dataset.id = seat.id;
-                    //Check if it reserved by me. Do so by checking the movie the
-                    //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
-                    let isReservedByMe = false;
-                    if (myReservationsForScreening.find(reservation => reservation == seat.id)) {
-                        isReservedByMe = true;
-                    }
-                    if (isReservedByMe) {
-                        // alert('This seat is already reserved by you')
-                        seatIcon.style.color = 'green';
-                        seatIcon.classList.add('selected');
-                    }
-                    if (screeningBookings.find(booking => booking == seat.id)) {
-                        // alert('This seat is already booked')
-                        seatIcon.style.color = 'red';
-                        seatIcon.classList.add('booked');
-                    }
-                    if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
-                        // alert('This seat is already booked')
-                        seatIcon.style.color = 'red';
-                        seatIcon.classList.add('reserved');
-                    }
-                    if (myBookingsForScreening.find(booking => booking == seat.id)) {
-                        // alert('This seat is already booked by you')
-                        seatIcon.style.color = 'blue';
-                        seatIcon.classList.add('booked');
-                    }
-                    const seatWidth = "2vw"
-                    seatIcon.style.fontSize = seatWidth;
-                    const margin = "0.2vw"
-                    seatIcon.style.margin = margin;
-                    seatIcon.title = `Seat ${seat.position}`;
-                    // Determine the seat's position in the grid
-                    // seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
-                    seatIcon.style.order = seat.position;
-                    seatIcon.classList.add('seat');
-                    rowElement.appendChild(seatIcon);
-                    //If this is the first of the row, add padding left
-                   if(seat.position == 1 && row.seats.length < maxSeatsPerRow){
-                       //If even number of seats, add padding left for number of seats in the row less than maxSeatsPerRow to the first seat
-                       const numberOfSeats = row.seats.length;
-                       const emptySpaceWidth = (maxSeatsPerRow - numberOfSeats) * parseFloat(seatWidth) + parseFloat(margin) * (maxSeatsPerRow - numberOfSeats);
-                       const marginLeft = emptySpaceWidth / 2; // Centering the seats by dividing the empty space by two.
-                       seatIcon.style.marginLeft = `${marginLeft + 0.4}vw`; // Apply the calculated margin to the first seat.
-                   }
-                   //Add hover of position and category on seat
-                     seatIcon.addEventListener('mouseover', function(event){
-                        const seatElement = event.target;
-                        const seatId = seatElement.dataset.id;
-                        const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == seatId)).seats.find(seat => seat.id == seatId);
-                        const category = seat.category;
-                        seatElement.title = `Seat ${seat.position} - Category: ${category.name}`;
-                     })
-                })
-                const category = document.createElement('p');
-                category.textContent = `Category: ${row.category.name}`;
-                rowElement.appendChild(category);
-                seatsElement.appendChild(rowElement);
-
-            });
-            seatsElement.classList.remove('loading');
-            seatsElement.classList.add('seatsElement');
-            await updatePrice(screeningId);
-        } catch (error) {
-            console.error('Error fetching seats:', error);
-        }
-    }
-
-    await checkSeats()
-    // Clear any existing interval before starting a new one
-    if (seatCheckInterval) {
-        clearInterval(seatCheckInterval);
-    }
-    seatCheckInterval = setInterval(checkSeats, 10000);
-}
-
-// Function to stop checking seat availability
-function stopSeatChecking() {
-    if (seatCheckInterval) {
-        clearInterval(seatCheckInterval);
-        seatCheckInterval = null; // Reset the interval variable
-    }
-}
-
-// Function to check the current status of a seat (for example, after the reservation timer expires)
-async function checkSeatStatus(seatId, seatIcon) {
-    try {
-        // const response = await fetch(`https://your-spring-boot-app.com/seats/${seatId}`);
-        // const seat = await response.json();
-
-        const seat = dummySeats[seatId];
-        seatIcon.style.color = seat.reservierungs_stat ? 'red' : 'gray';
-    } catch (error) {
-        console.error('Error checking seat status:', error);
-    }
-}
-async function updatePrice(screeningId){
-    const totalPriceToPayHtml = document.createElement('p');
-    //If element does not exist yet, create it
-    if(!document.querySelector('.total-price-to-pay')) {
-        //Create new html element
-        totalPriceToPayHtml.className = 'total-price-to-pay';
-        totalPriceToPayHtml.textContent = 'Total price to pay: 0';
-        document.getElementById('screening-details').appendChild(totalPriceToPayHtml);
-    }
-    const screening = await screeningAPIFunctions.getScreeningById(screeningId);
-    //Get all reservations so far
-    const reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
-    //Filter out the reservations that are for the current screening
-    const reservationsForScreening = reservations.filter(reservation => reservation.filmScreeningId == screeningId);
-    //For each seat, check the price
-    let totalPrice = 0;
-    for(let i = 0; i < reservationsForScreening.length; i++){
-        //Get the seat
-        const seat = await hallAPIFunctions.getHallById(screening.playsInHallId).then(hall => {
-            return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
-        })
-        //Get the category of the seat
-        const category = seat.category;
-        //Get the price of the category
-        const price = category.price;
-        //Add the price to the total price
-        totalPrice += price;
-    }
-    //Update the total price to pay
-    document.querySelector('.total-price-to-pay').textContent = `Total price to pay: ${totalPrice}`;
-    //Add the total price to pay to the screening details
-}
-async function getReservedSeatsForScreening(screeningId){
-    const reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
-    //Filter out the reservations that are for the current screening
-    return reservations.filter(reservation => reservation.filmScreeningId == screeningId);
-}
-/// Function to attempt seat reservation
-async function attemptSeatReservation(seatId, seatElement, screeningId) {
-    // If is already booked by me, return and do nothing
-    const isBookedByMe = seatElement.classList.contains('booked');
-    if (isBookedByMe) {
-        return;
-    }
-    const isReservedByMe = seatElement.classList.contains('selected');
-    // If the seat is already selected by the current user, unreserve it
-    if (seatElement.classList.contains('selected')) {
-        //Get the reservation
-        const reservation = await customerAPIFunctions.getReservationsForCustomer(me.id).then(reservations => {
-            return reservations.find(reservation => reservation.seatId == seatId);
-        });
-        customerAPIFunctions.deleteReservationForCustomer(me.id, reservation.id).then(() => {
-            seatElement.classList.remove('selected');
-            seatElement.style.color = 'black';
-            updatePrice(screeningId);
-        });
-    }
-    // If the seat is reserved by someone else, do nothing
-    if (seatElement.classList.contains('reserved')) {
-        return;
-    }
-    if(!isReservedByMe){
-
-    // Reserve the seat
-    try {
-        customerAPIFunctions.addReservationForCustomer(me.id, screeningId, seatId, ).then(() => {
-            seatElement.classList.add('selected');
-            seatElement.style.color = 'green';
-        }).then(() => {
-            updatePrice(screeningId);
-        });
-
-    } catch (error) {
-        console.error('Error reserving seat:', error);
-    }
-    }
-}
 
 
 
-// Function to finalize the reservation
-async function finalizeReservation() {
-    //get all my reserved seats for this screening
-    const reservations = await getReservedSeatsForScreening(document.querySelector('#screening-details').dataset.id);
-    for(let reservationsIndex in reservations){
-       customerAPIFunctions.addNewBookingToCustomer(me.id, reservations[reservationsIndex].seatId, reservations[reservationsIndex].filmScreeningId).then(() => {
-           //Remove the selected class
-           const hmtlReservations = document.querySelectorAll('.selected');
-              for(let i = 0; i < hmtlReservations.length; i++){
-                hmtlReservations[i].classList.remove('selected');
-                //remove reserved class
-                hmtlReservations[i].classList.remove('reserved');
-                //add booked class
-                hmtlReservations[i].classList.add('booked');
-                hmtlReservations[i].style.color = 'blue';
-            }
 
-       });
-
-    }
-}
 
 // User registration
 document.querySelector('#registration-form').addEventListener('submit', function(event) {
@@ -1302,8 +872,10 @@ async function hallListBuilder(){
                     document.getElementById('screening-details').style.display = 'none';
                     //Remove the seats
                     document.getElementById('seats').style.display = 'none';
-                    //Remove the finalize button
-                    document.querySelector('.finalize-kinosaal-button').remove();
+                    if(document.querySelector('.finalize-kinosaal-button') != null){
+                        //Remove the finalize button
+                        document.querySelector('.finalize-kinosaal-button').remove();
+                    }
                     //Remove the row controls
                     document.querySelector('.row-controls').remove();
                 })

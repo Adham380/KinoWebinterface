@@ -160,6 +160,11 @@ app.post('/customer', function(req, res, next) {
         res.send(data);
     });
 });
+app.get('/customer/:customerId', function(req, res, next) {
+    customerAPICalls.getCustomerById(req.params.customerId).then(data => {
+        res.send(data);
+    });
+});
 
 // Add endpoint for adding a reservation for a customer
 app.post('/customer/:customerId/reservations', function(req, res, next) {
