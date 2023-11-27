@@ -56,17 +56,35 @@ try {
         console.error('Error adding reservation:', error);
     }
 }
-async function addBookingForCustomer(customerId, filmScreeningId, seatId) {
+ async function addBookingForCustomer(customerId, seatId, filmScreeningId) {
     try {
+        customerId = parseInt(customerId);
+        seatId = parseInt(seatId);
+        filmScreeningId = parseInt(filmScreeningId);
+        console.log(customerId, seatId, filmScreeningId);
+
         const response = await fetch(`http://localhost:8080/customer/${customerId}/booking`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filmScreeningId, seatId }),
+            body: JSON.stringify({ seatId, filmScreeningId }),
         });
-        const booking = await response.json();
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        let booking;
+        try {
+            booking = await response.json();
+        } catch (jsonError) {
+            throw new Error('Error parsing JSON: ' + jsonError.message);
+        }
+
         return booking;
+
     } catch (error) {
-        console.error('Error adding booking:', error);
+        console.error('Error adding new booking:', error);
+        // Optionally, return an error object or message to handle it further up the call stack
     }
 }
 async function deleteReservationForCustomer(customerId, reservationId) {

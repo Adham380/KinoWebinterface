@@ -10,7 +10,6 @@ let isAdmin = false;
 
 
 async function rowBuilder(seatRow, seats, i) {
-    console.log(seatRow);
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
     rowElement.dataset.id = seatRow.id;
@@ -93,10 +92,8 @@ async function rowBuilder(seatRow, seats, i) {
     removeSeatFromRowButton.addEventListener('click', function (event) {
         //Remove a seat from the row
         const rowElement = event.target.parentElement;
-        console.log(rowElement);
         //The last seat in rowElement is the seat to be removed. Check by class
         const seatElement = rowElement.querySelectorAll('.builder_seat')
-        console.log(seatElement);
         //If there is only one seat, do not remove it
         if (rowElement.childElementCount == 3) {
             return;
@@ -170,11 +167,9 @@ async function rowBuilder(seatRow, seats, i) {
                 const price = document.getElementsByName('price')[0].value;
                 //Create the category
                 const category = await hallAPIFunctions.createSeatingCategory(name, price)
-                console.log(category);
                 //For all rows, add the category to the category selector
                 //Get all row-category selectors:
                 const categorySelectors = document.querySelectorAll('.row-category-selector');
-                console.log(categorySelectors);
                 for (let i = 0; i < categorySelectors.length; i++) {
                     //Add the category to the category selector
                     const option = document.createElement('option');
@@ -246,7 +241,6 @@ async function rowBuilder(seatRow, seats, i) {
                 //Remove the category from the server
                 await hallAPIFunctions.deleteSeatingCategoryById(category.id)
                 const categorySelectors = document.querySelectorAll('.row-category-selector');
-                console.log(categorySelectors);
                 for (let i = 0; i < categorySelectors.length; i++) {
                     //Remove the category from the category selector
                     //Get the option with the value of the category id
@@ -443,6 +437,57 @@ async function fetchData() {
                 finalizeButton.textContent = 'Book reserved seats';
                 document.getElementById('screening-details').appendChild(finalizeButton);
                 finalizeButton.addEventListener('click', seatManagement.finalizeReservation);
+                const bookSelectedSeatsButton = document.createElement('button');
+                bookSelectedSeatsButton.className = 'book-selected-seats-button';
+                bookSelectedSeatsButton.textContent = 'Book selected seats';
+                document.getElementById('screening-details').appendChild(bookSelectedSeatsButton);
+                bookSelectedSeatsButton.addEventListener('click',(event) => {
+                    //Get the selected seats
+                    let selectedSeats = document.querySelectorAll('.selected');
+                    //filter out the seats that are not reserved and not booked
+                    selectedSeats.forEach((seat) => {
+                        if(!seat.classList.contains('reserved') && !seat.classList.contains('booked')){
+                            seat.classList.remove('selected');
+                        }
+                    })
+                    //Get the screening id
+                    const screeningId = document.querySelector('#screening-details').dataset.id;
+                    //For each selected seat, attempt to reserve it
+                    selectedSeats.forEach(async seat => {
+                        const userId = await userAuth.getUser();
+                        const response = await customerAPIFunctions.addNewBookingToCustomer(userId.id, seat.dataset.id, screeningId);
+                        if(response != null){
+                            //If successful, update the seat
+                            seatManagement.removeSeatFromSelectedSeats(parseInt(seat.dataset.id), parseInt(screeningId));
+                            seat.classList.remove('selected');
+                            seat.classList.add('booked');
+                            seat.style.color = 'blue';
+                        }
+                    })
+                });
+                const reserveSelectedSeatsButton = document.createElement('button');
+                reserveSelectedSeatsButton.className = 'reserve-selected-seats-button';
+                reserveSelectedSeatsButton.textContent = 'Reserve selected seats';
+                document.getElementById('screening-details').appendChild(reserveSelectedSeatsButton);
+                reserveSelectedSeatsButton.addEventListener('click',(event) => {
+                    //Get the selected seats
+                    let selectedSeats = document.querySelectorAll('.selected');
+                    //filter out the seats that are not reserved and not booked
+                    selectedSeats.forEach((seat) => {
+                        if(!seat.classList.contains('reserved') || !seat.classList.contains('booked')){
+                            seat.classList.remove('selected');
+                        }
+                    })
+                    //Get the screening id
+                    const screeningId = document.querySelector('#screening-details').dataset.id;
+                    //For each selected seat, attempt to reserve it
+                    selectedSeats.forEach(async seat => {
+                      await seatManagement.attemptSeatReservation(seat.dataset.id, seat, screeningId);
+                            //If successful, update the seat
+                            seatManagement.removeSeatFromSelectedSeats(parseInt(seat.dataset.id), parseInt(screeningId));
+                            seat.classList.remove('selected');
+                    })
+                });
             }
             // Show the back button
             document.querySelector('.back-button').style.display = 'block';
@@ -491,7 +536,23 @@ async function fetchData() {
         if (event.target.matches('.seat')) {
             const id = event.target.dataset.id;
             const screeningId = document.querySelector('#screening-details').dataset.id;
-            await seatManagement.attemptSeatReservation(id, event.target, screeningId);
+            // If the seat is not reserved or booked, select it
+            if (!event.target.classList.contains('reserved') && !event.target.classList.contains('booked')) {
+                // If the seat is already selected, deselect it
+                if (event.target.classList.contains('selected')) {
+                    seatManagement.removeSeatFromSelectedSeats(parseInt(id), screeningId);
+                    event.target.classList.remove('selected');
+                } else
+                    // If the seat is not selected, select it
+                    if(!event.target.classList.contains('reservedByMe') && !event.target.classList.contains('booked') && !event.target.classList.contains('reserved')){
+                        event.target.classList.add('selected');
+                        seatManagement.addSeatToSelectedSeats(parseInt(id), screeningId);
+                    }
+
+
+
+            }
+            // await seatManagement.attemptSeatReservation(id, event.target, screeningId);
         }
     });
 
@@ -677,7 +738,6 @@ async function editCinemaHall(hallId){
     //Find the Kinosaal with the id
     let hall = await hallAPIFunctions.getHallById(hallId);
 
-    console.log(hall);
     //Populate the Kinosaal-Builder
     //Remove all innerHTML from the
     for(let i = 0; i < hall.seatRows.length; i++){
@@ -693,11 +753,9 @@ async function editCinemaHall(hallId){
         //Add a row to the Kinosaal-Builder
         const rows = document.getElementById('Kinosaal-Builder').childElementCount - 1;
         let category;
-        console.log(hall);
         if (!hall.seatRows || hall.seatRows.length == 0) {
             //Get available categories
             category = await hallAPIFunctions.fetchSeatingCategories().then(categories => {
-                console.log(categories);
                 return categories[0];
             });
         } else {
@@ -710,15 +768,12 @@ async function editCinemaHall(hallId){
             }
             ]
         ).then((response) => {
-            console.log(response);
             if (response.seatRows != null && response.seatRows.length > hall.seatRows.length - 1) {
                 //Get the hall
                 hallAPIFunctions.getHallById(hallId).then(async hall => {
                     //Get the last row
                     const row = hall.seatRows[hall.seatRows.length - 1];
-                    console.log(row);
                     //Create the row
-                    console.log(hall.seatRows.length - 1);
                     await rowBuilder(row, row.seats.length, hall.seatRows.length - 1);
                 }).then(() => {
                    //Update this rows category to the new category
@@ -738,8 +793,6 @@ async function editCinemaHall(hallId){
     removeRowButton.textContent = `Remove row`;
     removeRowButton.addEventListener('click', async function (event) {
         const currentHall = await hallAPIFunctions.getHallById(hallId);
-        console.log(currentHall.seatRows[currentHall.seatRows.length - 1].id);
-        console.log(currentHall.id);
         hallAPIFunctions.deleteRow(currentHall.id, currentHall.seatRows[currentHall.seatRows.length - 1].id).then((response) => {
             if (response.status == 200) {
                 //Remove a row from the Kinosaal-Builder
@@ -768,7 +821,6 @@ async function editCinemaHall(hallId){
     finalizeButton.textContent = 'Finalize cinema hall';
     finalizeButton.addEventListener('click', function(event){
         hallAPIFunctions.finishHall(hallId).then((response) => {
-            console.log(response);
             if(response.status == 200){
                 //Hide the Kinosaal-Builder
                 document.getElementById('Kinosaal-Builder').style.display = 'none';
@@ -808,11 +860,7 @@ async function updateScreenings() {
         //Get from localhost localhost:8080/screening
         const screenings = await screeningAPIFunctions.fetchAllScreenings()
         const oldScreenings = JSON.parse(localStorage.getItem('screenings'));
-        console.log(oldScreenings);
-        console.log(screenings);
-        console.log(oldScreenings == screenings);
         const screeningsElement = document.getElementById('screenings')
-        console.log(screeningsElement.innerHTML)
         if(screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings) ){
             return;
         }
@@ -882,13 +930,11 @@ document.querySelector('#registration-form').addEventListener('submit', function
 
 async function hallListBuilder(){
     const halls = await hallAPIFunctions.getAllHalls();
-    console.log(halls);
     const hallsContainer = document.createElement('div');
     hallsContainer.className = 'halls';
     document.body.appendChild(hallsContainer);
     for (let i = 0; i < halls.length; i++) {
         const hall = await hallAPIFunctions.getHallById(halls[i]);
-        console.log(hall);
         const hallElement = document.createElement('div');
         hallElement.className = 'hall';
         hallElement.textContent = `Hall ${hall.id}`;

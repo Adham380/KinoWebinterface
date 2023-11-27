@@ -88,6 +88,10 @@ export async function getAllBookingsForCustomer(customerId) {
 // JavaScript function to add a new booking to a customer
 export async function addNewBookingToCustomer(customerId, seatId, filmScreeningId) {
     try {
+        customerId = parseInt(customerId)
+        seatId = parseInt(seatId)
+        filmScreeningId = parseInt(filmScreeningId)
+        console.log(customerId, seatId, filmScreeningId)
         const response = await fetch(`/customer/${customerId}/booking`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

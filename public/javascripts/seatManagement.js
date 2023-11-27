@@ -5,12 +5,25 @@ import {hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
 import {userAuth} from "./userAuth.js";
 let seatCheckInterval;
 let me = await userAuth.getUser();
+let selectedSeatsForFilmScreening = new Map();
+function addSeatToSelectedSeats(seatId, screeningId){
+    //key should be screeningId and seatId combined.  Value should be the seatId
+    const key = screeningId + seatId;
+    selectedSeatsForFilmScreening.set(key, seatId);
+}
+function removeSeatFromSelectedSeats(seatId, screeningId){
+    const key = screeningId + seatId;
+    selectedSeatsForFilmScreening.delete(key);
+
+}
 console.log(me);
 async function startSeatChecking(screeningId) {
 
 
     async function checkSeats() {
         try {
+            //All selected seats in map
+            const selectedSeatsString = JSON.stringify(Array.from(selectedSeatsForFilmScreening.values()));
             const seatsElement = document.getElementById('seats');
             seatsElement.classList.add('loading');
             seatsElement.style.display = 'flex';
@@ -18,13 +31,9 @@ async function startSeatChecking(screeningId) {
             const screening = await screeningAPIFunctions.getScreeningById(screeningId)
             const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
             const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
-            console.log(screeningReservations);
             const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
-            console.log(screeningBookings);
             const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
-            console.log(myReservations);
             const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
-            console.log(myBookings);
             let myReservationsForScreening = [];
             //Check if I have a reservation that has a seat equal to the one in screeningReservations
             for(let i = 0; i < screeningReservations.length; i++){
@@ -79,25 +88,32 @@ async function startSeatChecking(screeningId) {
                     if (myReservationsForScreening.find(reservation => reservation == seat.id)) {
                         isReservedByMe = true;
                     }
-                    if (isReservedByMe) {
-                        // alert('This seat is already reserved by you')
-                        seatIcon.style.color = 'green';
-                        seatIcon.classList.add('selected');
-                    }
-                    if (screeningBookings.find(booking => booking == seat.id)) {
-                        // alert('This seat is already booked')
-                        seatIcon.style.color = 'red';
-                        seatIcon.classList.add('booked');
-                    }
-                    if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
-                        // alert('This seat is already booked')
-                        seatIcon.style.color = 'red';
-                        seatIcon.classList.add('reserved');
-                    }
                     if (myBookingsForScreening.find(booking => booking == seat.id)) {
                         // alert('This seat is already booked by you')
                         seatIcon.style.color = 'blue';
                         seatIcon.classList.add('booked');
+                    } else
+                    if (isReservedByMe) {
+                        // alert('This seat is already reserved by you')
+                        seatIcon.style.color = 'green';
+                        seatIcon.classList.add('reservedByMe');
+                    } else
+                    if (screeningBookings.find(booking => booking == seat.id)) {
+                        // alert('This seat is already booked')
+                        seatIcon.style.color = 'red';
+                        seatIcon.classList.add('booked');
+                    } else
+                    if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
+                        // alert('This seat is already booked')
+                        seatIcon.style.color = 'red';
+                        seatIcon.classList.add('reserved');
+                    } else
+
+                    if(selectedSeatsForFilmScreening.has(screeningId + seat.id)){
+                        seatIcon.classList.add('selected');
+                    //     Remove the other classes if they exist
+                        seatIcon.classList.remove('booked');
+                        seatIcon.classList.remove('reserved');
                     }
                     const seatWidth = "2vw"
                     seatIcon.style.fontSize = seatWidth;
@@ -122,12 +138,11 @@ async function startSeatChecking(screeningId) {
                         const seatElement = event.target;
                         const seatId = seatElement.dataset.id;
                         const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == seatId)).seats.find(seat => seat.id == seatId);
-                        console.log(seat);
                         const seatRow = hall.seatRows.find(row => row.seats.find(seat => seat.id == seatId));
                         const category = seatRow.category;
-                        console.log(category);
                         seatElement.title = `Seat ${seat.position} - Category: ${category.name}`;
                     })
+
                 })
                 const category = document.createElement('p');
                 category.textContent = `Category: ${row.category.name}`;
@@ -186,8 +201,8 @@ async function attemptSeatReservation(seatId, seatElement, screeningId) {
         // Reserve the seat
         try {
             customerAPIFunctions.addReservationForCustomer(me.id, screeningId, seatId, ).then(() => {
-                seatElement.classList.add('selected');
                 seatElement.style.color = 'green';
+                seatElement.classList.add('reservedByMe');
             }).then(() => {
                 updatePrice(screeningId);
             });
@@ -245,11 +260,11 @@ async function finalizeReservation() {
     for(let reservationsIndex in reservations){
         customerAPIFunctions.addNewBookingToCustomer(me.id, reservations[reservationsIndex].seatId, reservations[reservationsIndex].filmScreeningId).then(() => {
             //Remove the selected class
-            const hmtlReservations = document.querySelectorAll('.selected');
+            const hmtlReservations = document.querySelectorAll('.reservedByMe');
             for(let i = 0; i < hmtlReservations.length; i++){
                 hmtlReservations[i].classList.remove('selected');
                 //remove reserved class
-                hmtlReservations[i].classList.remove('reserved');
+                hmtlReservations[i].classList.remove('reservedByMe');
                 //add booked class
                 hmtlReservations[i].classList.add('booked');
                 hmtlReservations[i].style.color = 'blue';
@@ -265,5 +280,7 @@ export const seatManagement = {
     attemptSeatReservation,
     getReservedSeatsForScreening,
     finalizeReservation,
+    addSeatToSelectedSeats,
+    removeSeatFromSelectedSeats,
 
 }

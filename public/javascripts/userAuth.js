@@ -22,12 +22,14 @@ async function createCustomer() {
 }
 //Get customer by id
 async function getUser() {
+    console.log('Getting user');
 //Try to get me locally
-    let tempMe = JSON.parse(localStorage.getItem('me'));
+    let tempMe = localStorage.getItem('me')
+    console.log(tempMe);
     //If me is null, create new customer
-    if (tempMe === null) {
+    if (tempMe === null || tempMe === undefined) {
         tempMe = await createCustomer();
-        me = tempMe;
+        me = JSON.parse(tempMe);
         console.log(me);
     } else {
 
@@ -42,6 +44,7 @@ async function getUser() {
             }
         });
     }
+    console.log(me);
     return JSON.parse(localStorage.getItem('me'));
 }
 export const userAuth = {
