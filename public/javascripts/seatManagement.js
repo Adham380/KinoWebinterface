@@ -350,6 +350,7 @@ async function finalizeReservation() {
             }
             //Update price
             updatePrice(document.querySelector('#screening-details').dataset.id);
+            //Refresh hall list
 
         });
 

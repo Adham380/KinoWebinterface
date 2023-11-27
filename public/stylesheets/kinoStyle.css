@@ -298,3 +298,6 @@ display: flex;
 .reservedByMe {
     color: green;
 }
+.builder_seat{
+    font-size: 5vh;
+}
