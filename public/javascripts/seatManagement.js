@@ -348,6 +348,8 @@ async function finalizeReservation() {
                 hmtlReservations[i].classList.add('booked');
                 hmtlReservations[i].style.color = 'blue';
             }
+            //Update price
+            updatePrice(document.querySelector('#screening-details').dataset.id);
 
         });
 
