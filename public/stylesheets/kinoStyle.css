@@ -35,14 +35,19 @@ a {
 #registration-form  button{
   position: absolute;
   top: 0;
-  right: 2vw;
-  margin: 1vh;
+  right: 3vw;
+    margin: 1.5vh 1vh 1vh;
+    color: white;
+    border: 0.1vh white solid;
   padding: 1vh;
-  border: none;
   background-color: transparent;
-  opacity: 0.6;
+  opacity: 1;
 }
-
+#user-login-form{
+    position: absolute;
+    top: 6vh;
+    right: 8.2vw;
+}
 #login-form{
   /*display: flex;*/
   /*flex-direction: column;*/
@@ -53,7 +58,7 @@ a {
 #login-form, #logout-button{
   position: absolute;
   top: 0;
-  right: 5vw;
+  right: 7vw;
   margin: 1vh;
   padding: 1vh;
   border: none;

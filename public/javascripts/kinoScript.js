@@ -7,8 +7,8 @@ import {moviePosters} from "./moviePosters.js";
 
 let isAdmin = false;
 //TODO implement proper customer login when all else is done
-
-
+const user = await userAuth.getUser();
+document.querySelector('#CustomerNameHeader').innerText = "Willkommen " + user.name;
 async function rowBuilder(seatRow, seats, i) {
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
@@ -1102,7 +1102,8 @@ document.querySelector('#login-form').addEventListener('submit', async function 
     // Get login credentials from form
     //dummy login for now. Get the username and password from the form. Get by name
     const username = document.getElementsByName('username')[0].value;
-    const password = document.getElementsByName('password')[0].value;
+    let password = document.getElementsByName('password')[0].value;
+
     if (username == 'admin' && password == 'admin') {
         //clear values
         document.getElementsByName('username')[0].value = '';
@@ -1124,7 +1125,23 @@ document.querySelector('#login-form').addEventListener('submit', async function 
 
     // Send a POST request to the server for login
 });
-
+document.querySelector('#user-login-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    // Get login credentials from form
+    //dummy login for now. Get the username and password from the form. Get by name
+    const customerId = parseInt(document.getElementsByName('id')[0].value);
+    //Get the user
+    const user = await customerAPIFunctions.getCustomerById(customerId);
+    if(user != null){
+        await userAuth.setUser(user);
+        //clear values
+        document.getElementsByName('id')[0].value = '';
+        // Stop checking seats
+        seatManagement.stopSeatChecking();
+        await seatManagement.startSeatChecking()
+        await updateScreenings();
+    }
+});
 // User logout
 document.querySelector('#logout-button').addEventListener('click', function() {
     // Send a POST request to the server for logout

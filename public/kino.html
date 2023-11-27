@@ -7,7 +7,7 @@
 </head>
 
 <body>
-<h1>Tristan, Mattis, Lucas & Adham</h1>
+<h1 id="CustomerNameHeader">Tristan, Mattis, Lucas & Adham</h1>
 <p>Welcome to the best Cinema ever</p>
 <div id="screening-container">
 <div id="screenings">
@@ -41,9 +41,15 @@
     <input type="text" name="username" placeholder="Username">
   </label>
   <label>
-    <input type="password" name="password" placeholder="Password">
+    <input type="text" name="password" placeholder="Password">
   </label>
-  <button type="submit">Admin Login</button>
+  <button type="submit">Admin login</button>
+</form>
+<form id="user-login-form">
+  <label for="user-login-form">
+    <input name="id" type="number" value="0" min="0"  step="1">
+  </label>
+  <button type="submit">login</button>
 </form>
 <button style="display: none" id="logout-button">Logout</button>
 <button style="display: none" class="finalize-button">Finalize Reservation</button>

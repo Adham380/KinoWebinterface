@@ -22,10 +22,9 @@ function removeSeatFromSelectedSeats(seatId, screeningId) {
 
 }
 
-console.log(me);
 
 async function startSeatChecking(screeningId) {
-
+    me = await userAuth.getUser();
 
     async function checkSeats() {
         try {
