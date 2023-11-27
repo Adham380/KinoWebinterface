@@ -28,11 +28,21 @@ async function rowBuilder(seatRow, seats, i) {
     // rowElement.style.alignItems = 'center';
     //Create the seats
     for (let j = 0; j < seats; j++) {
+        // const seatWidth = "2vw"
+        //                     seatIcon.style.fontSize = seatWidth;
+        //                     const margin = "0.2vw"
+        //                     seatIcon.style.margin = margin;
+        //                     seatIcon.title = `Seat ${seat.position}`;
+        //                     // Determine the seat's position in the grid
+        //                     // seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
+        //                     seatIcon.style.order = seat.position;
+        //                     seatIcon.classList.add('seat');
+        //                     rowElement.appendChild(seatIcon);
         const seatElement = document.createElement('i');
         seatElement.className = 'fas fa-chair'; // Font Awesome seat icon
         seatElement.dataset.id = j;
-        seatElement.style.fontSize = '24px';
-        seatElement.style.margin = '5px';
+        // seatElement.style.fontSize = '24px';
+        // seatElement.style.margin =
         seatElement.title = `Seat ${j + 1}`;
         // Determine the seat's position in the grid
         seatElement.style.order = j + 1;
@@ -360,6 +370,23 @@ async function fetchData() {
         if (event.target.matches('.screening')) {
             const id = event.target.dataset.id;
             await updateScreeningDetails(id);
+            if(event.target.classList.contains('largeScreening')){
+                event.target.classList.remove('largeScreening');
+                event.target.style.animationName = 'scaleDown'
+                event.target.style.animationDuration = '1s'
+                event.target.style.animationFillMode = 'forwards'
+            } else {
+                // Make screening clicked active
+                event.target.classList.add('largeScreening');
+
+            }
+            // Make all other screenings inactive
+            const screenings = document.querySelectorAll('.screening');
+            screenings.forEach(screening => {
+                if (screening.dataset.id != id) {
+                    screening.classList.remove('largeScreening');
+                }
+            });
             //hide all other screenings
             const screeningsElement = document.getElementById('screenings');
             // screeningsElement.style.display = 'none';
