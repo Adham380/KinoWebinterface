@@ -3,6 +3,7 @@ import {hallAPIFunctions} from "./APIFunctions/hallAPIFunctions.js";
 import {customerAPIFunctions} from "./APIFunctions/customerAPIFunctions.js";
 import {seatManagement} from "./seatManagement.js";
 import {userAuth} from "./userAuth.js";
+import {moviePosters} from "./moviePosters.js";
 
 let isAdmin = false;
 //TODO implement proper customer login when all else is done
@@ -361,7 +362,7 @@ async function fetchData() {
             await updateScreeningDetails(id);
             //hide all other screenings
             const screeningsElement = document.getElementById('screenings');
-            screeningsElement.style.display = 'none';
+            // screeningsElement.style.display = 'none';
             //hide the Screening-Builder
             document.querySelector('.Screening-Builder-Button').style.display = 'none';
             const hallsList = document.querySelector('.halls');
@@ -439,8 +440,7 @@ async function fetchData() {
                     }
                     document.querySelector('.Screening-Builder-Button').style.display = 'block';
                     const hallsList = document.querySelector('.halls');
-                    console.log(hallsList !== null && hallsList.style.display);
-                    if(hallsList.style.display == 'none'){
+                    if(hallsList !== null && hallsList.style.display == 'none'){
                         document.querySelector('.halls').style.display = 'block';
                     }
                 }
@@ -683,16 +683,12 @@ async function editCinemaHall(hallId){
                     console.log(hall.seatRows.length - 1);
                     await rowBuilder(row, row.seats.length, hall.seatRows.length - 1);
                 }).then(() => {
-                    //Get row category selector and change it to the category returned above
-                    const categorySelector = document.querySelectorAll('.row-category-selector');
-                    console.log(categorySelector);
-                    for (let i = 0; i < categorySelector.length; i++) {
-                        for (let j = 0; j < categorySelector[i].options.length; j++) {
-                            if (categorySelector[i].options[j].value == category.id) {
-                                categorySelector[i].options[j].selected = true;
-                            }
-                        }
-                    }
+                   //Update this rows category to the new category
+                    const rowsElement = document.getElementById('Kinosaal-Builder').querySelectorAll('.row');
+                    const row = rowsElement[rowsElement.length - 1];
+                    const categorySelector = row.querySelector('.row-category-selector');
+                    //Change selected to the new category
+                    categorySelector.querySelector(`[value="${category.id}"]`).selected = true;
                 })
             }
         });
@@ -752,25 +748,55 @@ async function editCinemaHall(hallId){
     })
     document.getElementById('Kinosaal-Builder').appendChild(finalizeButton);
 }
+function screeningArraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
 
+    // Sort arrays to ensure order is the same
+    a = [...a].sort((x, y) => x.id - y.id);
+    b = [...b].sort((x, y) => x.id - y.id);
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i].id !== b[i].id || a[i].film !== b[i].film || a[i].played !== b[i].played || a[i].playsInHallId !== b[i].playsInHallId) {
+            return false;
+        }
+    }
+    return true;
+}
 // Function to update screenings
 async function updateScreenings() {
     try {
         //Get from localhost localhost:8080/screening
         const screenings = await screeningAPIFunctions.fetchAllScreenings()
+        const oldScreenings = JSON.parse(localStorage.getItem('screenings'));
+        console.log(oldScreenings);
+        console.log(screenings);
+        console.log(oldScreenings == screenings);
+        const screeningsElement = document.getElementById('screenings')
+        console.log(screeningsElement.innerHTML)
+        if(screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings) ){
+            return;
+        }
         // const screenings = dummyScreenings;
-        const screeningsElement = document.getElementById('screenings');
+
         //Filter out screenings that have already happened
         const upcomingScreenings = screenings.filter(screening => !screening.played);
         screeningsElement.innerHTML = ''; // Clear current listings
         // Iterate over screenings and create elements for each one
-        upcomingScreenings.forEach(screening => {
+        for (const screening of upcomingScreenings) {
             const screeningElement = document.createElement('div');
             screeningElement.className = 'screening';
             screeningElement.dataset.id = screening.id;
             screeningElement.textContent = `${screening.film} - Click to view details`;
+            const moviePoster = await moviePosters.getMoviePoster(screening.film);
+            if (moviePoster) {
+                screeningElement.style.backgroundImage = `url(${moviePoster})`;
+
+            }
             screeningsElement.appendChild(screeningElement);
-        });
+        }
+        localStorage.setItem('screenings', JSON.stringify(screenings));
     } catch (error) {
         console.error('Error fetching screenings:', error);
     }
@@ -970,6 +996,7 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         //Click back button
         document.querySelector('.back-button').click();
         await hallListBuilder();
+        await updateScreenings();
     }
 
     // Send a POST request to the server for login

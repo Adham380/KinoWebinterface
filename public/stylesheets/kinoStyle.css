@@ -1,6 +1,9 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+/*    Very dark gray*/
+    background-color: #222222;
+    color: #fff;
 }
 
 a {
@@ -54,4 +57,78 @@ a {
   border: none;
   background-color: transparent;
   opacity: 0.6;
+}
+#screenings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2vw; /* Spacing between cards */
+    /* Spacing around the container */
+    justify-content: center; /* Center cards in the container */
+    max-height: 100vh;
+    overflow-y: scroll;
+    max-width: 40vw;
+    scrollbar-color: #00B7FF transparent;
+    scrollbar-width: thin;
+    padding: 4vh 4vw 4vw;
+    background-color: #222222;
+    border: 0.1vh black solid;
+    border-radius: 1vw;
+    /*Indent shadow*/
+    box-shadow: 0 0.1vw 0.5vw 0 rgba(0, 0, 0, 0.1);
+    margin-right: 5vw;
+    color: #fff;
+}
+
+.screening {
+    background-color: #fff; /* Card background color */
+    box-shadow: 0 0.5vw 1vw 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+    width: 40vw;
+    margin-bottom: 2vw;
+    text-align: center;
+    border-radius: 1vw;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    font-size: 4vh;
+    font-weight: bold;
+    /*Font needs to be readable*/
+    color: #000;
+    /*Add stroke for font*/
+    -webkit-text-stroke: 1px #fff;
+    min-height: 20vh;
+    background-repeat: no-repeat;
+    background-size: cover; /* or contain depending on your needs */
+    background-position: center center; /* or 0% 0% depending on your needs */
+}
+
+.screening:hover {
+    box-shadow: 0 1vw 2vw 0 rgba(0,0,0,0.2); /* Larger shadow on hover for a "lifting" effect */
+    transform: scale(1.03); /* Slight scale-up effect on hover */
+}
+
+.screening .title {
+    font-size: 1.5vw; /* Title font size */
+    font-weight: bold; /* Title font weight */
+    margin: 1.5vw 0; /* Space above and below the title */
+    display: block; /* Ensure the title takes up the full width */
+    padding: 1.5vw 0; /* Padding for clickable area */
+}
+#screening-container{
+  display: flex;
+  flex-direction: row;
+  margin-top: 10vh;
+}
+/* Adjustments for responsive design */
+@media (max-width: 50em) { /* Adjust the breakpoint as needed */
+    .screening {
+        width: 90vw; /* Adjust the width for smaller screens */
+    }
+    .screening .title {
+        font-size: 3vw; /* Increase the font size for better readability on small screens */
+    }
+}
+#hall-container{
+    display: flex;
+    flex-direction: column;
 }
