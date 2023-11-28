@@ -1114,14 +1114,9 @@ document.querySelector('#user-login-form').addEventListener('submit', async func
     const customerId = parseInt(document.getElementsByName('id')[0].value);
     //Get the user
     const user = await customerAPIFunctions.getCustomerById(customerId);
-    if(user != null){
-        await userAuth.setUser(user);
-        //clear values
-        document.getElementsByName('id')[0].value = '';
-        // Stop checking seats
-        seatManagement.stopSeatChecking();
-        await seatManagement.startSeatChecking()
-        await updateScreenings();
+    console.log(user);
+    if(user == undefined || user == null){
+      alert('User does not exist');
     }
 });
 // User logout
