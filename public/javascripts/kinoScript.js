@@ -880,7 +880,7 @@ async function updateScreenings() {
             screeningElement.className = 'screening';
             screeningElement.dataset.id = screening.id;
             const playedString = screening.played ? 'played' : 'not played yet';
-            screeningElement.textContent = `${screening.film} - ${screening.playsInHallId} - ${playedString}`;
+            screeningElement.textContent = `${screening.film} (${screening.id}) - Hall ${screening.playsInHallId} - ${playedString}`;
             const moviePoster = await moviePosters.getMoviePoster(screening.film);
             if (moviePoster) {
                 screeningElement.style.backgroundImage = `url(${moviePoster})`;
