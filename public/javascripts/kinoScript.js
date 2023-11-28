@@ -6,7 +6,11 @@ import {userAuth} from "./userAuth.js";
 import {moviePosters} from "./moviePosters.js";
 
 let isAdmin = false;
-await userAuth.initalizeCustomerHtml();
+await userAuth.initalizeCustomerHtml()
+if(userAuth.getUser() != null && userAuth.getUser() !== undefined){
+    // document.querySelector('#logout-button').style.display = 'block';
+
+}
 
 async function rowBuilder(seatRow, seats, i) {
     const rowElement = document.createElement('div');
@@ -934,12 +938,6 @@ async function updateScreeningDetails(screeningId) {
 
 
 
-// User registration
-document.querySelector('#registration-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    // Get user details from form
-    // Send a POST request to the server for registration
-});
 
 async function hallListBuilder(){
     const halls = await hallAPIFunctions.getAllHalls();
@@ -1091,6 +1089,7 @@ document.querySelector('#login-form').addEventListener('submit', async function 
     //dummy login for now. Get the username and password from the form. Get by name
     const username = document.getElementsByName('username')[0].value;
     let password = document.getElementsByName('password')[0].value;
+    document.querySelector('#logout-button').style.display = 'block';
 
     if (username == 'admin' && password == 'admin') {
         //clear values
@@ -1100,7 +1099,6 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         //Hide the login form
         document.querySelector('#login-form').style.display = 'none';
         //Show the logout button
-        document.querySelector('#logout-button').style.display = 'block';
         //Show the screening builder button
         document.querySelector('.Screening-Builder-Button').style.display = 'block';
         //Click back button
@@ -1110,7 +1108,6 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         await hallListBuilder();
         await updateScreenings(true);
     }
-
     // Send a POST request to the server for login
 });
 document.querySelector('#user-login-form').addEventListener('submit', async function (event) {
@@ -1120,9 +1117,11 @@ document.querySelector('#user-login-form').addEventListener('submit', async func
     const customerId = parseInt(document.getElementsByName('id')[0].value);
     //Get the user
     const user = await customerAPIFunctions.getCustomerById(customerId);
-    console.log(user);
     if(user == undefined || user == null){
       alert('User does not exist');
+    } else {
+        await userAuth.setUser(user);
+
     }
 });
 // User logout
@@ -1132,6 +1131,7 @@ document.querySelector('#logout-button').addEventListener('click', function() {
     document.querySelector('#login-form').style.display = 'block';
     //Hide the logout button
     document.querySelector('#logout-button').style.display = 'none';
+    localStorage.setItem('me', undefined);
     //refresh
     location.reload();
 });

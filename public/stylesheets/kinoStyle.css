@@ -63,7 +63,15 @@ a {
   padding: 1vh;
   border: none;
   background-color: transparent;
-  opacity: 0.6;
+  opacity: 1;
+    color: white;
+}
+#logout-button{
+    margin-top: 2vh;
+    right : 3.5vw;
+    border: 0.1vw white solid;
+    padding: 0.5vh;
+    border-radius: 0.1vw;
 }
 #screenings {
     display: flex;

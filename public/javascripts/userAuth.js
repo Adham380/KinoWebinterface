@@ -5,11 +5,40 @@ var me;
 async function initializeCustomerHtml() {
     const user = await getUser();
     if(user == null || user == undefined || user.name == ""){
-       document.querySelector('#CustomerNameHeader').innerText = "Willkommen, Gast!";
+        document.querySelector('#CustomerNameHeader').innerText = "Willkommen, Gast!";
 
     } else {
         document.querySelector('#CustomerNameHeader').innerText = "Willkommen, " + user.name + "!" + " (" + user.id + ")";
     }
+//Append a small register form
+    const registerForm = document.createElement('form');
+    registerForm.className = 'register-form';
+    const registerInput = document.createElement('input');
+    registerInput.type = 'text';
+    registerInput.name = 'name';
+    registerInput.placeholder = 'Register as new customer';
+    registerForm.appendChild(registerInput);
+    const registerButton = document.createElement('button');
+    registerButton.type = 'submit';
+    registerButton.textContent = 'Register';
+    registerForm.appendChild(registerButton);
+    document.querySelector('#CustomerNameHeader').appendChild(registerForm);
+    registerForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const name = document.querySelector('.register-form input').value;
+        const user = await customerAPIFunctions.createCustomer(name);
+        if (user != null) {
+            //Set the user
+            localStorage.setItem('me', JSON.stringify(user));
+            //Update the header
+            document.querySelector('#CustomerNameHeader').innerText = "Willkommen, " + user.name + "!" + " (" + user.id + ")";
+            //Remove the form
+            this.remove();
+            setTimeout(() => {
+                location.reload();
+            }, 500)
+        }
+    });
 }
 try {
 
