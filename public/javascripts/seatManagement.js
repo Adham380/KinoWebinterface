@@ -12,6 +12,9 @@ function addSeatToSelectedSeats(seatId, screeningId) {
     //key should be screeningId and seatId combined.  Value should be the seatId
     const key = screeningId + seatId;
     selectedSeatsForFilmScreening.set(key, seatId);
+    updatePrice(screeningId).then(() => {
+
+    })
 }
 
 function removeSeatFromSelectedSeats(seatId, screeningId) {
@@ -19,7 +22,9 @@ function removeSeatFromSelectedSeats(seatId, screeningId) {
     console.log(key);
     selectedSeatsForFilmScreening.delete(key);
     console.log(selectedSeatsForFilmScreening);
+    updatePrice(screeningId).then(() => {
 
+    })
 }
 
 
@@ -298,11 +303,23 @@ async function getReservedSeatsForScreening(screeningId) {
 
 async function updatePrice(screeningId) {
     const totalPriceToPayHtml = document.createElement('p');
+    const selectedSeatsPriceHtml = document.createElement('p');
+    const reservedSeatsPriceHtml = document.createElement('p');
     //If element does not exist yet, create it
-    if (!document.querySelector('.total-price-to-pay')) {
-        //Create new html element
-        totalPriceToPayHtml.className = 'total-price-to-pay';
-        totalPriceToPayHtml.textContent = 'Total price to pay: 0';
+    if (!document.querySelector('.reserved-price-to-pay')) {
+        reservedSeatsPriceHtml.className = 'reserved-price-to-pay';
+        reservedSeatsPriceHtml.textContent = 'Reserved seats total: 0€';
+        document.getElementById('screening-details').appendChild(reservedSeatsPriceHtml);
+    }
+    if(!document.querySelector('.selected-price-to-pay')) {
+        selectedSeatsPriceHtml.className = 'selected-price-to-pay';
+        selectedSeatsPriceHtml.textContent = 'Selected seats total: 0€';
+        document.getElementById('screening-details').appendChild(selectedSeatsPriceHtml);
+
+    }
+    if(!document.querySelector('.combined-price-to-pay')) {
+        totalPriceToPayHtml.className = 'Combined-price-to-pay';
+        totalPriceToPayHtml.textContent = 'Combined price to pay: 0€';
         document.getElementById('screening-details').appendChild(totalPriceToPayHtml);
     }
     const screening = await screeningAPIFunctions.getScreeningById(screeningId);
@@ -311,21 +328,49 @@ async function updatePrice(screeningId) {
     //Filter out the reservations that are for the current screening
     const reservationsForScreening = reservations.filter(reservation => reservation.filmScreeningId == screeningId);
     //For each seat, check the price
-    let totalPrice = 0;
+    let reservedSeatsPrice = 0;
+    const hall = await hallAPIFunctions.getHallById(screening.playsInHallId);
     for (let i = 0; i < reservationsForScreening.length; i++) {
         //Get the seat
-        const seat = await hallAPIFunctions.getHallById(screening.playsInHallId).then(hall => {
-            return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
-        })
+        // const seat = await hall.then(hall => {
+        //     return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
+        // })
+        const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
         //Get the category of the seat
         const category = seat.category;
         //Get the price of the category
         const price = category.price;
         //Add the price to the total price
-        totalPrice += price;
+        reservedSeatsPrice += price;
     }
+
+    document.querySelector('.reserved-price-to-pay').textContent = `Reserved seats total: ${reservedSeatsPrice}€`;
+
+    let selectedSetsPrice = 0
+    //Get all selected seats for this screening
+    const selectedSeats = selectedSeatsForFilmScreening.values();
+    const selectedSeatsArray = Array.from(selectedSeats);
+    for (let i = 0; i < selectedSeatsArray.length; i++) {
+
+           //Check in which row the seat is and get the category
+           //    const seat = await hall.then(hall => {
+           //        return hall.seatRows.find(row => row.seats.find(seat => seat.id == selectedSeatsArray[i]));
+           //    })
+            const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == selectedSeatsArray[i]));
+            if(seat) {
+                //Get the category of the seat
+                const category = seat.category;
+                //Get the price of the category
+                const price = category.price;
+                //Add the price to the total price
+                selectedSetsPrice += price;
+            }
+    }
+    document.querySelector('.selected-price-to-pay').textContent = `Selected seats total: ${selectedSetsPrice}€`;
+    const totalPrice = reservedSeatsPrice + selectedSetsPrice;
+
     //Update the total price to pay
-    document.querySelector('.total-price-to-pay').textContent = `Total price to pay: ${totalPrice}`;
+    document.querySelector('.combined-price-to-pay').textContent = `Combined price to pay: ${totalPrice}€`;
     //Add the total price to pay to the screening details
 }
 
@@ -356,7 +401,9 @@ async function finalizeReservation() {
 
     }
 }
+async function unreserveSeat(){
 
+}
 export const seatManagement = {
     startSeatChecking,
     stopSeatChecking,
@@ -365,5 +412,4 @@ export const seatManagement = {
     finalizeReservation,
     addSeatToSelectedSeats,
     removeSeatFromSelectedSeats,
-
 }
