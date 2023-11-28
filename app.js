@@ -67,6 +67,11 @@ app.patch('/screening/:screeningId', function(req, res, next) {
         res.send(data);
     });
 });
+app.delete('/screening/:screeningId', function(req, res, next) {
+    screeningAPICalls.deleteScreening(req.params.screeningId).then(data => {
+        res.send(data);
+    });
+});
 app.post('/screening', function(req, res, next) {
     screeningAPICalls.postScreening(req.body).then(data => {
         res.send(data);

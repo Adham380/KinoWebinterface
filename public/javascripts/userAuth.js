@@ -5,17 +5,28 @@ var me;
 
 try {
     const storedMe = localStorage.getItem('me');
-    if (storedMe) {
-        console.log('storedMe:', storedMe);
-        me = JSON.parse(storedMe);
+    console.log(storedMe.name)
+    const parsedMe = JSON.parse(storedMe);
+    console.log(parsedMe.name)
+    if (parsedMe == null || parsedMe == undefined || parsedMe == "" || parsedMe.name == null || parsedMe.name == undefined || parsedMe.name == "") {
+
+            const newMe = await customerAPIFunctions.createCustomer("Bobbie");
+
+            me = newMe;
+                localStorage.setItem('me', JSON.stringify(me));
+
     } else {
-        console.log("storedMe is null, setting default");
-        me = { id: 59, name: 'Bobbie' };
+        me = storedMe;
     }
 } catch (error) {
     console.error("Error parsing 'me' from localStorage:", error);
-    me = { id: 59, name: 'Bobbie' };
-    localStorage.setItem('me', JSON.stringify(me));
+    // Create customer
+    const newMe = await customerAPIFunctions.createCustomer('Bobbie');
+    console.log(newMe);
+    if (newMe != null) {
+        me = newMe;
+        localStorage.setItem('me', JSON.stringify(me));
+    }
 }
 
 async function createCustomer() {
@@ -28,20 +39,28 @@ async function createCustomer() {
 }
 
 async function getUser() {
-    let tempMe = localStorage.getItem('me');
-    if (!tempMe) {
-        me = await createCustomer();
-    } else {
-        me = JSON.parse(tempMe);
-        const response = await customerAPIFunctions.getCustomerById(me.id);
-        if (response !== null) {
-            localStorage.setItem('me', JSON.stringify(response));
-            me = response;
-        } else {
+    try {
+
+        let tempMe = localStorage.getItem('me');
+        if (!tempMe) {
             me = await createCustomer();
+        } else {
+            me = JSON.parse(tempMe);
+            const response = await customerAPIFunctions.getCustomerById(me.id);
+            if (response !== null) {
+                localStorage.setItem('me', JSON.stringify(response));
+                me = response;
+            } else {
+                me = await createCustomer();
+            }
         }
+        return me;
+    } catch (error) {
+        console.error("Error getting user:", error);
+    location.reload();
+
+
     }
-    return me;
 }
 
 async function setUser(user) {

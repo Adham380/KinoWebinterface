@@ -69,8 +69,6 @@ async function startSeatChecking(screeningId) {
                     maxSeatsPerRow = row.seats.length;
                 }
             })
-            console.log(myReservationsForScreening);
-            console.log(myBookingsForScreening);
             //This should be calculated based on the number of seats in the screening and vw
             // seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
             seatsElement.innerHTML = ''; // Clear current seat listings

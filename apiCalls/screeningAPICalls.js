@@ -37,7 +37,7 @@ async function getEarnings(screeningId) {
 
 }
 async function patchScreening(screening, screeningId) {
-    console.log(JSON.stringify(screening));
+    console.log("THIS IS THE SCREENING: " + JSON.stringify(screening));
     const response = await fetch(`http://localhost:8080/screening/${screeningId}`, {
         method: 'PATCH',
         headers: {
@@ -62,6 +62,15 @@ async function postScreening(screening) {
     console.log(data);
     return data;
 }
+async function deleteScreening(screeningId) {
+    console.log("Deleting screening with ID " + screeningId);
+    const response = await fetch('http://localhost:8080/screening/' + screeningId, {
+        method: 'DELETE',
+    });
+    const data = await response.json();
+    return data;
+
+}
 
 //Export module as an object
 module.exports = {
@@ -71,5 +80,6 @@ module.exports = {
     getScreeningById,
     getEarnings,
     patchScreening,
-    postScreening
+    postScreening,
+    deleteScreening
 }

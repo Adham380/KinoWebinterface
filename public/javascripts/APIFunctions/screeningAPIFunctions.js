@@ -70,7 +70,17 @@ async function getBookedSeats(screeningId){
     const data = await response.json();
     return data;
 }
-
+async function deleteScreening(screeningId) {
+    try {
+        const response = await fetch(`/screening/${screeningId}`, {
+            method: 'DELETE',
+        });
+        const deletedScreening = await response.json();
+        return deletedScreening;
+    } catch (error) {
+        console.error(`Error deleting screening with ID ${screeningId}:`, error);
+    }
+}
 
 export const screeningAPIFunctions = {
     getScreeningById,
@@ -79,5 +89,6 @@ export const screeningAPIFunctions = {
     updateScreening,
     calculateEarningsFromScreening,
     getReservedSeats,
-    getBookedSeats
+    getBookedSeats,
+    deleteScreening
 }

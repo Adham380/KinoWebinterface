@@ -8,7 +8,7 @@ import {moviePosters} from "./moviePosters.js";
 let isAdmin = false;
 //TODO implement proper customer login when all else is done
 const user = await userAuth.getUser();
-document.querySelector('#CustomerNameHeader').innerText = "Willkommen " + user.name;
+document.querySelector('#CustomerNameHeader').innerText = "Willkommen, " + user.name + "!" + " (" + user.id + ")" || "Willkommen, Gast!";
 async function rowBuilder(seatRow, seats, i) {
     const rowElement = document.createElement('div');
     rowElement.className = 'row';
@@ -363,6 +363,26 @@ async function fetchData() {
                     })
                     document.getElementById('screening-details').appendChild(editCinemaHallButton);
                 }
+                //screening-details Needs to have a button to delete the screening
+                const deleteScreeningButton = document.createElement('button');
+                deleteScreeningButton.className = 'delete-screening-button';
+                deleteScreeningButton.textContent = 'Delete screening';
+                deleteScreeningButton.addEventListener('click', async function(event){
+                    //Delete the screening
+                    await screeningAPIFunctions.deleteScreening(id);
+                    //Click back button
+                    document.querySelector('.back-button').click();
+                    //Remove the form
+                    document.querySelector('.Screening-Builder-Form').remove();
+                    //refresh the screenings
+                    await updateScreenings();
+                })
+                document.getElementById('screening-details').appendChild(deleteScreeningButton);
+                //Delete Screening-Builder-Form to ensure up to date data by having the user create a new one manually on button click
+                const ScreeningBuilderForm = document.querySelector('.Screening-Builder-Form');
+                if(ScreeningBuilderForm){
+                    ScreeningBuilderForm.remove();
+                }
             }
             // Start checking seat availability for this screening
             await seatManagement.startSeatChecking(id); // Start checking seat availability for this screening
@@ -546,7 +566,7 @@ async function patchScreening(screeningData) {
     // Hide the screening builder
 
 }
-async function createScreeningForm(screeningData) {
+async function createScreeningForm(screeningData, patchBoolean) {
     //Make visible the Screening-Builder
     document.getElementById('Screening-Builder').style.display = 'block';
     //Create the form
@@ -599,24 +619,26 @@ async function createScreeningForm(screeningData) {
     form.appendChild(submitButton);
     //Add the form to the Screening-Builder
     document.getElementById('Screening-Builder').appendChild(form);
-    //Add the event listener to the form
-    form.addEventListener('submit', async function (event) {
-        //for now just add the screening to the dummyScreenings
-        event.preventDefault();
-        //Get the values from the form
-        const film = document.getElementsByName('film')[0].value;
-        const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
-        const played = document.getElementsByName('played')[0].value;
-        screeningAPIFunctions.addNewScreening( parseInt(playsInHallId),film, played).then(() => {
-            //Click back button
-            document.querySelector('.back-button').click();
-            //Remove the form
-            document.querySelector('.Screening-Builder-Form').remove();
-            //refresh the screenings
-            updateScreenings();
-        })
+    if(!patchBoolean) {
+        //Add the event listener to the form
+        form.addEventListener('submit', async function (event) {
 
-    })
+            event.preventDefault();
+            //Get the values from the form
+            const film = document.getElementsByName('film')[0].value;
+            const playsInHallId = document.getElementsByName('playsInHallId')[0].value;
+            const played = document.getElementsByName('played')[0].value;
+            screeningAPIFunctions.addNewScreening(parseInt(playsInHallId), film, played).then(() => {
+                //Click back button
+                document.querySelector('.back-button').click();
+                //Remove the form
+                document.querySelector('.Screening-Builder-Form').remove();
+                //refresh the screenings
+                updateScreenings();
+            })
+
+        })
+    }
 }
 async function populateScreeningForm(screeningData) {
     //if form already exists remove it
@@ -625,7 +647,7 @@ async function populateScreeningForm(screeningData) {
         form.remove();
         return;
     }
-    await createScreeningForm(screeningData);
+    await createScreeningForm(screeningData, true);
     //<form class="Screening-Builder-Form"><input type="text" name="film" placeholder="Film"><select name="playsInHallId"><option value="1">Kinosaal 1</option><option value="2">Kinosaal 2</option></select><select name="played"><option value="true">stattgefunden</option><option value="false">nicht stattgefunden</option></select><button type="submit">Submit</button></form>
     //Get the input fields
     const inputFilm = document.getElementsByName('film')[0];
@@ -638,7 +660,9 @@ async function populateScreeningForm(screeningData) {
     //The string of the options will be Hall + id
     inputplaysInHallId.querySelector(`[value="${screeningData.playsInHallId}"]`).selected = true;
     //If stattgefunden, select the value true
+    console.log(screeningData)
     if(screeningData.played){
+
         inputStattgefundenStat.querySelector(`[value="true"]`).selected = true;
     }
     else{
@@ -681,11 +705,11 @@ async function editScreening(screeningId){
     // const screeningData = dummyScreenings.find(screening => screening.id == screeningId);
 
     //Populate the form
-    populateScreeningForm(screeningData);
+    await populateScreeningForm(screeningData);
 
 }
 async function editCinemaHall(hallId){
-
+    console.log(hallId)
     //Hide the screening-details
     document.getElementById('screening-details').style.display = 'none';
     //Screening innerhtml should be empty
@@ -729,6 +753,10 @@ async function editCinemaHall(hallId){
             });
         } else {
             category = hall.seatRows[hall.seatRows.length - 1].category;
+        }
+        if(!category){
+        //     Create default category of Parkett
+            category = await hallAPIFunctions.createSeatingCategory('Parkett', 10);
         }
         hallAPIFunctions.addRowsToHall(hallId,
             [{
@@ -804,6 +832,11 @@ async function editCinemaHall(hallId){
                 document.querySelector('.Screening-Builder-Button').style.display = 'block';
             }
             hallListBuilder();
+            //Delete Screening-Builder-Form to ensure up to date data by having the user create a new one manually on button click
+            const ScreeningBuilderForm = document.querySelector('.Screening-Builder-Form');
+            if(ScreeningBuilderForm){
+                ScreeningBuilderForm.remove();
+            }
         })
     })
     document.getElementById('Kinosaal-Builder').appendChild(finalizeButton);
@@ -828,23 +861,27 @@ function screeningArraysEqual(a, b) {
 async function updateScreenings() {
     try {
         //Get from localhost localhost:8080/screening
-        const screenings = await screeningAPIFunctions.fetchAllScreenings()
+        let screenings = await screeningAPIFunctions.fetchAllScreenings()
         const oldScreenings = JSON.parse(localStorage.getItem('screenings'));
         const screeningsElement = document.getElementById('screenings')
-        if(screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings) ){
+        if(!isAdmin){
+        screenings = screenings.filter(screening => !screening.played)
+        }
+        if(screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings)  ){
             return;
         }
         // const screenings = dummyScreenings;
 
         //Filter out screenings that have already happened
-        const upcomingScreenings = screenings.filter(screening => !screening.played);
+        const upcomingScreenings = screenings
         screeningsElement.innerHTML = ''; // Clear current listings
         // Iterate over screenings and create elements for each one
         for (const screening of upcomingScreenings) {
             const screeningElement = document.createElement('div');
             screeningElement.className = 'screening';
             screeningElement.dataset.id = screening.id;
-            screeningElement.textContent = `${screening.film}`;
+            const playedString = screening.played ? 'played' : 'not played yet';
+            screeningElement.textContent = `${screening.film} - ${screening.playsInHallId} - ${playedString}`;
             const moviePoster = await moviePosters.getMoviePoster(screening.film);
             if (moviePoster) {
                 screeningElement.style.backgroundImage = `url(${moviePoster})`;
