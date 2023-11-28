@@ -12,6 +12,7 @@ if(initialUser != null || initialUser !== undefined){
      document.querySelector('#logout-button').style.display = 'block';
 
 }
+let updateScreeningCurrentlyRunning = false;
 
 async function rowBuilder(seatRow, seats, i) {
     const rowElement = document.createElement('div');
@@ -697,7 +698,7 @@ async function populateScreeningForm(screeningData) {
 async function refreshScreenings() {
     await updateScreenings();
 }
-setInterval(refreshScreenings, 30000); // Refresh every 30 seconds
+let refreshScreeningInterval = setInterval(refreshScreenings, 5000); // Refresh every 30 seconds
 async function editScreening(screeningId){
     //Fetch the screening
     // const response = await fetch(`https://your-spring-boot-app.com/screenings/${screeningId}`);
@@ -864,6 +865,15 @@ function screeningArraysEqual(a, b) {
 // Function to update screenings
 async function updateScreenings(forceUpdateBoolean) {
     try {
+        if(updateScreeningCurrentlyRunning){
+            return;
+        } else {
+            updateScreeningCurrentlyRunning = true;
+
+        }
+        if(forceUpdateBoolean){
+            clearInterval(refreshScreeningInterval)
+        }
         //Get from localhost localhost:8080/screening
         let screenings = await screeningAPIFunctions.fetchAllScreenings()
         const oldScreenings = JSON.parse(localStorage.getItem('screenings'));
@@ -874,8 +884,9 @@ async function updateScreenings(forceUpdateBoolean) {
         if(!forceUpdateBoolean && screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings)  ){
             return;
         }
-        // const screenings = dummyScreenings;
 
+        // const screenings = dummyScreenings;
+        //clearInterval
         //Filter out screenings that have already happened
         const upcomingScreenings = screenings
         screeningsElement.innerHTML = ''; // Clear current listings
@@ -900,6 +911,12 @@ async function updateScreenings(forceUpdateBoolean) {
             screeningsElement.appendChild(screeningElement);
         }
         localStorage.setItem('screenings', JSON.stringify(screenings));
+        if(forceUpdateBoolean){
+        setTimeout(() => {
+            refreshScreeningInterval = setInterval(refreshScreenings, 5000); // Refresh every 30 seconds
+        }, 5000);
+        }
+        updateScreeningCurrentlyRunning = false;
     } catch (error) {
         console.error('Error fetching screenings:', error);
     }
