@@ -941,6 +941,9 @@ async function updateScreeningDetails(screeningId) {
 
 
 async function hallListBuilder(){
+    if(document.querySelector('.halls') != null){
+        document.querySelector('.halls').remove();
+    }
     const halls = await hallAPIFunctions.getAllHalls();
     console.log(halls);
     const hallsContainer = document.createElement('div');
