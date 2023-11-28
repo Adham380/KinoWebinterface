@@ -7,8 +7,9 @@ import {moviePosters} from "./moviePosters.js";
 
 let isAdmin = false;
 await userAuth.initalizeCustomerHtml()
-if(userAuth.getUser() != null && userAuth.getUser() !== undefined){
-    // document.querySelector('#logout-button').style.display = 'block';
+const initialUser = await userAuth.getUser();
+if(initialUser != null || initialUser !== undefined){
+     document.querySelector('#logout-button').style.display = 'block';
 
 }
 
