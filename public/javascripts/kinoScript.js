@@ -6,9 +6,8 @@ import {userAuth} from "./userAuth.js";
 import {moviePosters} from "./moviePosters.js";
 
 let isAdmin = false;
-//TODO implement proper customer login when all else is done
-const user = await userAuth.getUser();
-document.querySelector('#CustomerNameHeader').innerText = "Willkommen, " + user.name + "!" + " (" + user.id + ")" || "Willkommen, Gast!";
+await userAuth.initalizeCustomerHtml();
+
 async function rowBuilder(seatRow, seats, i) {
     const rowElement = document.createElement('div');
     rowElement.className = 'row';

@@ -43,8 +43,18 @@ async function startSeatChecking(screeningId) {
             const hall = await hallAPIFunctions.getHallById(screening.playsInHallId)
             const screeningReservations = await screeningAPIFunctions.getReservedSeats(screeningId)
             const screeningBookings = await screeningAPIFunctions.getBookedSeats(screeningId);
-            const myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
-            const myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+            let myReservations = [];
+            let myBookings = [];
+            console.log(me);
+            console.log(me === undefined);
+
+            if(me !== undefined && me !== null) {
+                myReservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+                myBookings = await customerAPIFunctions.getAllBookingsForCustomer(me.id)
+            } else {
+                myReservations = [];
+                myBookings = [];
+            }
             let myReservationsForScreening = [];
             //Check if I have a reservation that has a seat equal to the one in screeningReservations
             for (let i = 0; i < screeningReservations.length; i++) {
@@ -300,6 +310,7 @@ async function getReservedSeatsForScreening(screeningId) {
 }
 
 async function updatePrice(screeningId) {
+
     const totalPriceToPayHtml = document.createElement('p');
     const selectedSeatsPriceHtml = document.createElement('p');
     const reservedSeatsPriceHtml = document.createElement('p');
@@ -322,7 +333,12 @@ async function updatePrice(screeningId) {
     }
     const screening = await screeningAPIFunctions.getScreeningById(screeningId);
     //Get all reservations so far
-    const reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+    let reservations = [];
+    if(me === undefined || me === null) {
+
+    } else {
+        reservations = await customerAPIFunctions.getReservationsForCustomer(me.id);
+    }
     //Filter out the reservations that are for the current screening
     const reservationsForScreening = reservations.filter(reservation => reservation.filmScreeningId == screeningId);
     //For each seat, check the price
