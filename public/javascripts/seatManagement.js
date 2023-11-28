@@ -319,7 +319,7 @@ async function updatePrice(screeningId) {
     }
     if(!document.querySelector('.combined-price-to-pay')) {
         totalPriceToPayHtml.className = 'Combined-price-to-pay';
-        totalPriceToPayHtml.textContent = 'Combined price to pay: 0€';
+        totalPriceToPayHtml.textContent = 'Combined seats total: 0€';
         document.getElementById('screening-details').appendChild(totalPriceToPayHtml);
     }
     const screening = await screeningAPIFunctions.getScreeningById(screeningId);
@@ -370,7 +370,7 @@ async function updatePrice(screeningId) {
     const totalPrice = reservedSeatsPrice + selectedSetsPrice;
 
     //Update the total price to pay
-    document.querySelector('.combined-price-to-pay').textContent = `Combined price to pay: ${totalPrice}€`;
+    document.querySelector('.combined-price-to-pay').textContent = `Combined seats total: ${totalPrice}€`;
     //Add the total price to pay to the screening details
 }
 
