@@ -857,7 +857,7 @@ function screeningArraysEqual(a, b) {
     return true;
 }
 // Function to update screenings
-async function updateScreenings() {
+async function updateScreenings(forceUpdateBoolean) {
     try {
         //Get from localhost localhost:8080/screening
         let screenings = await screeningAPIFunctions.fetchAllScreenings()
@@ -866,7 +866,7 @@ async function updateScreenings() {
         if(!isAdmin){
         screenings = screenings.filter(screening => !screening.played)
         }
-        if(screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings)  ){
+        if(!forceUpdateBoolean && screeningsElement.childElementCount > 0 && screeningArraysEqual(oldScreenings, screenings)  ){
             return;
         }
         // const screenings = dummyScreenings;
@@ -879,8 +879,14 @@ async function updateScreenings() {
             const screeningElement = document.createElement('div');
             screeningElement.className = 'screening';
             screeningElement.dataset.id = screening.id;
+            if(isAdmin){
+                console.log("THIS IS AN ADMin")
             const playedString = screening.played ? 'played' : 'not played yet';
             screeningElement.textContent = `${screening.film} (${screening.id}) - Hall ${screening.playsInHallId} - ${playedString}`;
+            } else {
+                screeningElement.textContent = `${screening.film} - Hall ${screening.playsInHallId}`;
+
+            }
             const moviePoster = await moviePosters.getMoviePoster(screening.film);
             if (moviePoster) {
                 screeningElement.style.backgroundImage = `url(${moviePoster})`;
@@ -1102,7 +1108,7 @@ document.querySelector('#login-form').addEventListener('submit', async function 
         //Show hallsEdit button
         document.querySelector('#hallsEdit').style.display = 'block';
         await hallListBuilder();
-        await updateScreenings();
+        await updateScreenings(true);
     }
 
     // Send a POST request to the server for login
