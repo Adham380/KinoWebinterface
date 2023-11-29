@@ -148,8 +148,10 @@ async function rowBuilder(seatRow, seats, i) {
             form.addEventListener('submit', async function (event) {
                 //for now just add the category to the dummyCategories
                 event.preventDefault();
+                const form = document.querySelector('.category-form');
+                //Get name value from formname is the first child
+                const name = form.children[0].value;
                 //Get the values from the form
-                const name = document.getElementsByName('name')[0].value;
                 const price = document.getElementsByName('price')[0].value;
                 //Create the category
                 const category = await hallAPIFunctions.createSeatingCategory(name, price)

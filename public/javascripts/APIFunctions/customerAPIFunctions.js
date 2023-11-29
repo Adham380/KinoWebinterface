@@ -6,7 +6,9 @@ export async function createCustomer(name) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name }),
         });
+        console.log(response);
         const customer = await response.json();
+        console.log(customer);
         return customer;
     } catch (error) {
         console.error('Error creating customer:', error);
