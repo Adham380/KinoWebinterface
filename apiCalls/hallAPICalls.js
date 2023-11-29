@@ -105,6 +105,7 @@ async function updateRowInHall (rowId, row) {
     return data;
 }
 async function deleteRowFromHall(hallId, rowId) {
+    console.log(hallId, rowId);
     const response = await fetch('http://localhost:8080/hall/'+ hallId + '/rows/' + rowId, {
         method: 'DELETE',
     });

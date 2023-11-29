@@ -614,8 +614,8 @@ async function createScreeningForm(screeningData, patchBoolean) {
     nichtstattgefundenOption.textContent = 'nicht stattgefunden';
 
 // Append options to the select element
-    selectStattgefundenStat.appendChild(stattgefundenOption);
     selectStattgefundenStat.appendChild(nichtstattgefundenOption);
+    selectStattgefundenStat.appendChild(stattgefundenOption);
 
 // Append the select element to the form
     form.appendChild(selectStattgefundenStat);
@@ -641,7 +641,7 @@ async function createScreeningForm(screeningData, patchBoolean) {
                 //Remove the form
                 document.querySelector('.Screening-Builder-Form').remove();
                 //refresh the screenings
-                updateScreenings();
+                updateScreenings(true);
             })
 
         })
@@ -880,6 +880,7 @@ async function updateScreenings(forceUpdateBoolean) {
         let screenings = await screeningAPIFunctions.fetchAllScreenings()
         const oldScreenings = JSON.parse(localStorage.getItem('screenings'));
         const screeningsElement = document.getElementById('screenings')
+
         if(!isAdmin){
         screenings = screenings.filter(screening => !screening.played)
         }
