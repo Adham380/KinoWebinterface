@@ -14,7 +14,7 @@ async function initializeCustomerHtml() {
     registerForm.className = 'register-form';
     const registerInput = document.createElement('input');
     registerInput.type = 'text';
-    registerInput.name = 'name';
+    registerInput.name = 'newUserName';
     registerInput.placeholder = 'Register as new customer';
     registerForm.appendChild(registerInput);
     const registerButton = document.createElement('button');
@@ -25,7 +25,9 @@ async function initializeCustomerHtml() {
     registerForm.addEventListener('submit', async function (event) {
         event.preventDefault();
         const name = document.querySelector('.register-form input').value;
+        console.log(name);
         const user = await customerAPIFunctions.createCustomer(name);
+        console.log(user);
         if (user != null) {
             //Set the user
             localStorage.setItem('me', JSON.stringify(user));
@@ -35,7 +37,7 @@ async function initializeCustomerHtml() {
             this.remove();
             setTimeout(() => {
                 location.reload();
-            }, 500)
+            }, 1000)
         }
     });
 }
