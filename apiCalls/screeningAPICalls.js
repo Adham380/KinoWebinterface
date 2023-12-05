@@ -72,7 +72,6 @@ async function deleteScreening(screeningId) {
 
 }
 
-//Export module as an object
 module.exports = {
     getScreenings,
     getReservedSeats,

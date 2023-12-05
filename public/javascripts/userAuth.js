@@ -10,7 +10,6 @@ async function initializeCustomerHtml() {
     } else {
         document.querySelector('#CustomerNameHeader').innerText = "Willkommen, " + user.name + "!" + " (" + user.id + ")";
     }
-//Append a small register form
     const registerForm = document.createElement('form');
     registerForm.className = 'register-form';
     const registerInput = document.createElement('input');
@@ -59,13 +58,6 @@ try {
 } catch (error) {
     await initializeCustomerHtml()
     console.error("Error parsing 'me' from localStorage:", error);
-    // Create customer
-    // const newMe = await customerAPIFunctions.createCustomer('Bobbie');
-    // console.log(newMe);
-    // if (newMe != null) {
-    //     me = newMe;
-    //     localStorage.setItem('me', JSON.stringify(me));
-    // }
 }
 
 async function createCustomer() {
@@ -95,10 +87,7 @@ async function getUser() {
         }
         return me;
     } catch (error) {
-        // await initializeCustomerHtml()
         console.error("Error getting user:", error);
-    // location.reload();
-
 
     }
 }
@@ -108,7 +97,6 @@ async function setUser(user) {
     me = user;
 
     localStorage.setItem('me', JSON.stringify(me));
-    //Reload page if necessary
     setTimeout(() => {
         location.reload();
 

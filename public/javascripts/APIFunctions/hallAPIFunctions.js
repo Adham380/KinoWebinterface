@@ -1,5 +1,4 @@
 //-----------------REST Hall functions------------------
-//Get hall
 async function getHallById(hallId) {
     try {
         //get REST API from localhost:3000/screenings
@@ -10,7 +9,6 @@ async function getHallById(hallId) {
         console.error('Error fetching hall:', error);
     }
 }
-// JavaScript function to create a new seating category
 async function createSeatingCategory(name, price) {
     try {
         const response = await fetch('/seatingCategory', {
@@ -26,7 +24,6 @@ async function createSeatingCategory(name, price) {
         console.error('Error creating seating category:', error);
     }
 }
-//Delete seating category
 async function deleteSeatingCategoryById(seatingCategoryId) {
     try {
         const response = await fetch(`/seatingCategory/${seatingCategoryId}`, {
@@ -40,7 +37,6 @@ async function deleteSeatingCategoryById(seatingCategoryId) {
 
 }
 
-// JavaScript function to get all seating categories
 async function fetchSeatingCategories() {
     try {
         const response = await fetch('/seatingCategories');
@@ -51,7 +47,6 @@ async function fetchSeatingCategories() {
     }
 }
 
-// JavaScript function to create a new hall
 async function createHall(configured, seatRows) {
     try {
         const response = await fetch('/hall', {
@@ -68,18 +63,7 @@ async function createHall(configured, seatRows) {
     }
 }
 
-// JavaScript function to get a hall by ID
-async function fetchHallById(hallId) {
-    try {
-        const response = await fetch(`/hall/${hallId}`);
-        const hall = await response.json();
-        return hall;
-    } catch (error) {
-        console.error(`Error fetching hall with ID ${hallId}:`, error);
-    }
-}
 
-// JavaScript function to delete a hall by ID
 async function deleteHallById(hallId) {
     try {
         const response = await fetch(`/hall/${hallId}`, {
@@ -92,7 +76,6 @@ async function deleteHallById(hallId) {
     }
 }
 
-// JavaScript function to finish a hall
 async function finishHall(hallId) {
     try {
         const response = await fetch(`/hall/${hallId}/finish`, {
@@ -106,7 +89,6 @@ async function finishHall(hallId) {
     }
 }
 
-// JavaScript function to add rows to a hall
 async function addRowsToHall(hallId, rows) {1
     try {
         const response = await fetch(`/hall/${hallId}/rows`, {
@@ -123,7 +105,6 @@ async function addRowsToHall(hallId, rows) {1
     }
 }
 
-// JavaScript function to update a row in a hall
 async function updateRowInHall(rowId, row) {
     try {
         console.log("This is the row: " + row);
@@ -166,7 +147,6 @@ export const hallAPIFunctions = {
     createSeatingCategory,
     fetchSeatingCategories,
     createHall,
-    fetchHallById,
     deleteHallById,
     finishHall,
     addRowsToHall,

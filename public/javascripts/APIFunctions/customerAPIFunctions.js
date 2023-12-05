@@ -1,4 +1,3 @@
-// JavaScript function to create a new customer
 export async function createCustomer(name) {
     try {
         const response = await fetch('/customer', {
@@ -24,7 +23,6 @@ export async function getCustomerById(customerId) {
     }
 
 }
-// JavaScript function to add a reservation for a customer
 export async function addReservationForCustomer(customerId, filmScreeningId, seatId) {
     try {
         const response = await fetch(`/customer/${customerId}/reservations`, {
@@ -39,7 +37,6 @@ export async function addReservationForCustomer(customerId, filmScreeningId, sea
     }
 }
 
-// JavaScript function to get all reservations for a customer
 export async function getReservationsForCustomer(customerId) {
     try {
         const response = await fetch(`/customer/${customerId}/reservations`);
@@ -50,7 +47,6 @@ export async function getReservationsForCustomer(customerId) {
     }
 }
 
-// JavaScript function to delete a reservation for a customer
 export async function deleteReservationForCustomer(customerId, reservationId) {
     try {
         customerId = parseInt(customerId);
@@ -65,20 +61,7 @@ export async function deleteReservationForCustomer(customerId, reservationId) {
     }
 }
 
-// JavaScript function to transform a reservation into a booking
-export async function transformReservationIntoBooking(reservationId) {
-    try {
-        const response = await fetch(`/customer/reservations/${reservationId}/toBuchung`, {
-            method: 'POST'
-        });
-        const booking = await response.json();
-        return booking;
-    } catch (error) {
-        console.error('Error transforming reservation into booking:', error);
-    }
-}
 
-// JavaScript function to get all bookings for a customer
 export async function getAllBookingsForCustomer(customerId) {
     try {
         const response = await fetch(`/customer/${customerId}/bookings`);
@@ -89,7 +72,6 @@ export async function getAllBookingsForCustomer(customerId) {
     }
 }
 
-// JavaScript function to add a new booking to a customer
 export async function addNewBookingToCustomer(customerId, seatId, filmScreeningId) {
     try {
         customerId = parseInt(customerId)
@@ -108,7 +90,6 @@ export async function addNewBookingToCustomer(customerId, seatId, filmScreeningI
     }
 }
 
-// JavaScript function to delete a booking for a customer
 export async function deleteBookingForCustomer(customerId, bookingId) {
     try {
         const response = await fetch(`/customer/${customerId}/booking/${bookingId}`, {
@@ -127,7 +108,6 @@ export const customerAPIFunctions = {
     addReservationForCustomer,
     getReservationsForCustomer,
     deleteReservationForCustomer,
-    transformReservationIntoBooking,
     getAllBookingsForCustomer,
     addNewBookingToCustomer,
     deleteBookingForCustomer,

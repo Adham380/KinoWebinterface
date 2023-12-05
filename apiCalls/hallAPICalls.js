@@ -1,17 +1,3 @@
-
-
-/**
- *    fetchHall,
- *     createSeatingCategory,
- *     fetchSeatingCategories,
- *     createHall,
- *     fetchHallById,
- *     deleteHallById,
- *     finishHall,
- *     addRowsToHall,
- *     updateRowInHall,
- *     getAllHalls
- */
 async function getAllHalls () {
     const response = await fetch('http://localhost:8080/halls');
     const data = await response.json();
@@ -112,7 +98,7 @@ async function deleteRowFromHall(hallId, rowId) {
     console.log(data);
     return data;
 }
-//Export module as an object
+
 module.exports = {
     finishHall,
     createSeatingCategory,

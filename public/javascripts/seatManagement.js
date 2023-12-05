@@ -71,65 +71,48 @@ async function startSeatChecking(screeningId) {
                     myBookingsForScreening.push(screeningBookings[i]);
                 }
             }
-            // Assuming a max number of seats per row for layout purposes
-            //check every object in hall.seatRows and check which is the longest
             let maxSeatsPerRow = 0;
             hall.seatRows.forEach(row => {
                 if (row.seats.length > maxSeatsPerRow) {
                     maxSeatsPerRow = row.seats.length;
                 }
             })
-            //This should be calculated based on the number of seats in the screening and vw
-            // seatsElement.style.maxWidth = `${maxSeatsPerRow * 3}vw`;
             seatsElement.innerHTML = ''; // Clear current seat listings
-            // Iterate over seats and create icons for each one
-            // Update the function to mark the seat as reserved if it is already taken
-            // For example:
 
             let rows = hall.seatRows;
 
             //Iterate over the rows
             rows.forEach(row => {
-                //Create the row element
                 const rowElement = document.createElement('div');
                 rowElement.className = 'row';
                 rowElement.dataset.id = row.id;
-                // Style as row
                 rowElement.style.display = 'flex';
                 rowElement.style.flexWrap = 'no-wrap';
-                //Iterate over the seats
                 row.seats.forEach(seat => {
 
                     const seatIcon = document.createElement('i');
                     seatIcon.className = 'fas fa-chair'; // Font Awesome seat icon
                     seatIcon.dataset.id = seat.id;
-                    //Check if it reserved by me. Do so by checking the movie the
-                    //If it is already green, it is reserved by me. This is only temporary until the server is ready to handle reservations
                     let isReservedByMe = false;
                     if (myReservationsForScreening.find(reservation => reservation == seat.id)) {
                         isReservedByMe = true;
                     }
                     if (myBookingsForScreening.find(booking => booking == seat.id)) {
-                        // alert('This seat is already booked by you')
                         seatIcon.style.color = 'blue';
                         seatIcon.classList.add('booked');
                     } else if (isReservedByMe) {
                         console.log('This seat is already reserved by you')
-                        // alert('This seat is already reserved by you')
                         seatIcon.classList.add('reservedByMe');
                     } else if (screeningBookings.find(booking => booking == seat.id)) {
-                        // alert('This seat is already booked')
                         seatIcon.style.color = 'red';
                         seatIcon.classList.add('booked');
                     } else if (screeningReservations.find(reservation => reservation == seat.id && !isReservedByMe)) {
-                        // alert('This seat is already booked')
                         seatIcon.style.color = 'red';
                         seatIcon.classList.add('reserved');
                     } else if (selectedSeatsForFilmScreening.has(screeningId + seat.id)) {
                         console.log('This seat is already selected by you')
                         console.log(screeningId + seat.id);
                         seatIcon.classList.add('selected');
-                        //     Remove the other classes if they exist
                         seatIcon.classList.remove('booked');
                         seatIcon.classList.remove('reserved');
                     }
@@ -138,20 +121,15 @@ async function startSeatChecking(screeningId) {
                     const margin = "0.2vw"
                     seatIcon.style.margin = margin;
                     seatIcon.title = `Seat ${seat.position}`;
-                    // Determine the seat's position in the grid
-                    // seatIcon.style.order = (seat.reihe - 1) * maxSeatsPerRow + seat.pos;
                     seatIcon.style.order = seat.position;
                     seatIcon.classList.add('seat');
                     rowElement.appendChild(seatIcon);
-                    //If this is the first of the row, add padding left
                     if (seat.position == 1 && row.seats.length < maxSeatsPerRow) {
-                        //If even number of seats, add padding left for number of seats in the row less than maxSeatsPerRow to the first seat
                         const numberOfSeats = row.seats.length;
                         const emptySpaceWidth = (maxSeatsPerRow - numberOfSeats) * parseFloat(seatWidth) + parseFloat(margin) * (maxSeatsPerRow - numberOfSeats);
                         const marginLeft = emptySpaceWidth / 2; // Centering the seats by dividing the empty space by two.
                         seatIcon.style.marginLeft = `${marginLeft + 0.4}vw`; // Apply the calculated margin to the first seat.
                     }
-                    //Add hover of position and category on seat
                     seatIcon.addEventListener('mouseover', function (event) {
                         const seatElement = event.target;
                         const seatId = seatElement.dataset.id;
@@ -241,7 +219,6 @@ async function startSeatChecking(screeningId) {
             seatColorCodingList.appendChild(availableSeat);
             seatColorCoding.appendChild(seatColorCodingList);
             categoryPricesAndSeatColorCodingContainer.appendChild(seatColorCoding);
-            // Add event listener for seat selection
             await updatePrice(screeningId);
         } catch (error) {
             console.error('Error fetching seats:', error);
@@ -345,10 +322,6 @@ async function updatePrice(screeningId) {
     let reservedSeatsPrice = 0;
     const hall = await hallAPIFunctions.getHallById(screening.playsInHallId);
     for (let i = 0; i < reservationsForScreening.length; i++) {
-        //Get the seat
-        // const seat = await hall.then(hall => {
-        //     return hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
-        // })
         const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == reservationsForScreening[i].seatId));
         //Get the category of the seat
         const category = seat.category;
@@ -366,10 +339,6 @@ async function updatePrice(screeningId) {
     const selectedSeatsArray = Array.from(selectedSeats);
     for (let i = 0; i < selectedSeatsArray.length; i++) {
 
-           //Check in which row the seat is and get the category
-           //    const seat = await hall.then(hall => {
-           //        return hall.seatRows.find(row => row.seats.find(seat => seat.id == selectedSeatsArray[i]));
-           //    })
             const seat = hall.seatRows.find(row => row.seats.find(seat => seat.id == selectedSeatsArray[i]));
             if(seat) {
                 //Get the category of the seat
@@ -385,7 +354,6 @@ async function updatePrice(screeningId) {
 
     //Update the total price to pay
     document.querySelector('.combined-price-to-pay').textContent = `Combined seats total: ${totalPrice}€`;
-    //Add the total price to pay to the screening details
 }
 
 /// Function to attempt seat reservation
